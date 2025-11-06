@@ -1,0 +1,55 @@
+{
+  "downloadOptions": {
+    "outputDir": "./downloads",
+    "quality": "320k",
+    "format": "mp3",
+    "addMetadata": true,
+    "addCoverArt": true,
+    "createPlaylistFolder": true,
+    "skipExisting": true,
+    "maxConcurrent": 3
+  },
+  "apiCredentials": {
+    "spotify": {
+      "clientId": "",
+      "clientSecret": ""
+    },
+    "deezer": {
+      "appId": "",
+      "secret": ""
+    },
+    "tidal": {
+      "token": "",
+      "countryCode": "US"
+    },
+    "youtube": {
+      "apiKey": "",
+      "clientId": "",
+      "clientSecret": ""
+    }
+  },
+  "scrapingOptions": {
+    "timeout": 30000,
+    "retries": 3,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "headless": true,
+    "waitForSelector": "",
+    "delay": 1000
+  },
+  "sources": [
+    "youtube_music",
+    "youtube",
+    "spotify",
+    "deezer",
+    "tidal"
+  ],
+  "fallbackToScraping": true,
+  "maxSearchResults": 10,
+  "searchTimeout": 15000,
+  "logging": {
+    "level": "info",
+    "enableFile": true,
+    "fileSize": "10MB",
+    "maxFiles": 5
+  }
+}

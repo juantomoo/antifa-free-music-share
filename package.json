@@ -1,0 +1,66 @@
+{
+  "name": "antifa-free-music-share",
+  "version": "1.0.0",
+  "description": "Liberate music from streaming monopolies. A community tool to free artists and listeners from capitalist platforms that exploit creators.",
+  "main": "dist/main.js",
+  "bin": {
+    "antifa-music": "dist/main.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "dev": "ts-node src/main.ts",
+    "clean": "rm -rf dist",
+    "install-deps": "npm install && npm run install-system-deps",
+    "install-system-deps": "echo 'Installing system dependencies...' && (which yt-dlp || pip install yt-dlp) && (which ffmpeg || echo 'Please install ffmpeg manually')"
+  },
+  "dependencies": {
+    "@types/node": "^20.10.0",
+    "axios": "^1.13.2",
+    "axios-retry": "^4.5.0",
+    "chalk": "^5.3.0",
+    "cheerio": "^1.0.0-rc.12",
+    "cli-progress": "^3.12.0",
+    "cli-table3": "^0.6.5",
+    "commander": "^11.1.0",
+    "dotenv": "^17.2.3",
+    "ffmpeg-static": "^5.2.0",
+    "fs-extra": "^11.3.2",
+    "fuzzy-search": "^3.2.1",
+    "genius-lyrics": "^4.4.7",
+    "inquirer": "^9.2.12",
+    "musicbrainz-api": "^0.26.0",
+    "node-id3": "^0.2.6",
+    "ora": "^7.0.1",
+    "puppeteer": "^21.5.2",
+    "spotify-web-api-node": "^5.0.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.3.2",
+    "youtube-dl-exec": "^2.4.13"
+  },
+  "devDependencies": {
+    "@types/cli-progress": "^3.11.5",
+    "@types/inquirer": "^9.0.7",
+    "@types/spotify-web-api-node": "^5.0.11"
+  },
+  "keywords": [
+    "music-liberation",
+    "anti-fascist",
+    "community-tools",
+    "artist-freedom",
+    "streaming-alternative",
+    "bandcamp",
+    "independent-music",
+    "free-culture",
+    "copyleft"
+  ],
+  "author": "Eonaria Project",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/juantomoo/antifa-free-music-share.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
