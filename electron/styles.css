@@ -42,6 +42,7 @@ body {
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
+  padding-bottom: 180px; /* Espacio para footer y mensajes reflexivos sticky */
 }
 
 /* Language Selector */
@@ -428,18 +429,55 @@ body {
   font-size: 14px;
 }
 
-/* Footer */
-.footer {
+/* Reflexive Messages - Sticky bottom always visible */
+.reflexive-message {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 800px;
+  background: rgba(10, 14, 39, 0.95);
+  border: 2px solid var(--accent-cyan);
+  border-radius: 12px;
+  padding: 15px 20px;
   text-align: center;
-  padding: 20px;
-  color: var(--text-tertiary);
-  border-top: 2px solid var(--border-color);
-  margin-top: 30px;
+  z-index: 10000; /* Mayor que modal */
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+  animation: message-fade-in 1s ease;
+  backdrop-filter: blur(10px);
 }
 
-.footer p {
+.reflexive-message p {
   margin: 5px 0;
-  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.reflexive-message strong {
+  color: var(--accent-cyan);
+  font-size: 1.1em;
+}
+
+/* Footer - Sticky bottom always visible */
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  padding: 15px 20px;
+  color: var(--text-tertiary);
+  background: rgba(10, 14, 39, 0.98);
+  border-top: 2px solid var(--border-color);
+  z-index: 10000; /* Mayor que modal */
+  backdrop-filter: blur(10px);
+  box-shadow: 0 -5px 20px rgba(0, 255, 65, 0.2);
+}
+
+footer p {
+  margin: 3px 0;
+  font-size: 13px;
 }
 
 /* Scrollbar */
@@ -561,7 +599,7 @@ body {
   height: 100vh;
   background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(5px);
-  z-index: 9999;
+  z-index: 9998; /* Menor que footer y mensajes reflexivos */
   justify-content: center;
   align-items: center;
   animation: fadeIn 0.3s ease-in-out;

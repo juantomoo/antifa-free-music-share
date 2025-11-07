@@ -48,6 +48,32 @@ npm run package-mac     # .dmg y .zip
 
 Los ejecutables se generarán en la carpeta `release/`
 
+### Construir para Android
+
+```bash
+# Sincronizar archivos web con proyecto Android
+npm run android:sync
+
+# Abrir proyecto en Android Studio
+npm run android:open
+
+# Construir APK debug (para testing)
+npm run android:build-debug
+
+# Construir APK release (para distribución)
+npm run android:build
+
+# Ejecutar en dispositivo/emulador conectado
+npm run android:run
+```
+
+**Requisitos para Android:**
+- Android Studio instalado
+- Android SDK configurado
+- Java JDK 17+
+
+Los APKs se generan en: `android/app/build/outputs/apk/`
+
 ---
 
 ## 📱 Distribución
