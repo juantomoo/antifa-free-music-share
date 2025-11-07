@@ -22,10 +22,11 @@ export class YouTubeDownloader {
     this.logger.info(`Searching YouTube for: ${query}`);
 
     try {
-      // Use yt-dlp command directly for search
-      const searchUrl = `ytsearch${maxResults}:${query}`;
+      // Use yt-dlp to search YouTube Music specifically
+      // Format: "https://music.youtube.com/search?q=QUERY"
+      const searchUrl = `https://music.youtube.com/search?q=${encodeURIComponent(query)}`;
       
-      const jsonOutput = execSync(`yt-dlp --dump-json --flat-playlist "${searchUrl}"`, {
+      const jsonOutput = execSync(`yt-dlp --dump-json --flat-playlist --playlist-end ${maxResults} "${searchUrl}"`, {
         encoding: 'utf8',
         maxBuffer: 50 * 1024 * 1024, // 50MB buffer
         timeout: 30000
@@ -42,14 +43,17 @@ export class YouTubeDownloader {
           
           if (!entry || !entry.id) continue;
 
+          // Clean up artist name (remove "- Topic" suffix)
+          const artist = (entry.uploader || entry.channel || 'Unknown Artist').replace(' - Topic', '');
+
           tracks.push({
             id: entry.id,
             title: entry.title || 'Unknown Title',
-            artist: entry.uploader || entry.channel || 'Unknown Artist',
+            artist: artist,
             album: entry.album || undefined,
             duration: entry.duration || 0,
-            url: entry.url || `https://www.youtube.com/watch?v=${entry.id}`,
-            source: MusicSource.YOUTUBE,
+            url: entry.url || `https://music.youtube.com/watch?v=${entry.id}`,
+            source: MusicSource.YOUTUBE_MUSIC,
             thumbnailUrl: entry.thumbnail || entry.thumbnails?.[0]?.url,
             year: entry.upload_date ? parseInt(entry.upload_date.substring(0, 4)) : undefined
           });
@@ -59,10 +63,10 @@ export class YouTubeDownloader {
         }
       }
 
-      return { tracks, playlists: [], source: MusicSource.YOUTUBE };
+      return { tracks, playlists: [], source: MusicSource.YOUTUBE_MUSIC };
     } catch (error) {
       this.logger.error('Error searching YouTube', error);
-      return { tracks: [], playlists: [], source: MusicSource.YOUTUBE };
+      return { tracks: [], playlists: [], source: MusicSource.YOUTUBE_MUSIC };
     }
   }
 

@@ -44,7 +44,7 @@ export class TidalDownloader {
       const scrapingOptions = this.config.getScrapingOptions();
       
       browser = await puppeteer.launch({
-        headless: scrapingOptions.headless,
+        headless: 'new', // Use new headless mode to avoid deprecation warning
         args: ['--no-sandbox', '--disable-setuid-sandbox']
       });
 
