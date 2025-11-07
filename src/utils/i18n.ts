@@ -413,7 +413,7 @@ const translations: Record<Language, Translations> = {
 };
 
 class I18nManager {
-  private currentLanguage: Language = 'en';
+  private currentLanguage: Language = 'es'; // Español como idioma principal (decolonización)
   
   setLanguage(lang: Language): void {
     this.currentLanguage = lang;
@@ -429,8 +429,8 @@ class I18nManager {
   
   getAvailableLanguages(): Array<{ name: string; code: Language }> {
     return [
-      { name: 'English', code: 'en' },
       { name: 'Español', code: 'es' },
+      { name: 'English', code: 'en' },
       { name: 'Português', code: 'pt' },
     ];
   }

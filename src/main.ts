@@ -306,12 +306,12 @@ class YTMusicDownloader {
    * Interactive mode
    */
   async interactiveMode(): Promise<void> {
-    // Language selection at startup
+    // Language selection at startup (Español primero - decolonización del idioma)
     const { language } = await inquirer.prompt([
       {
         type: 'list',
         name: 'language',
-        message: '🌍 Select language / Selecciona idioma / Selecione o idioma:',
+        message: '🌍 Selecciona idioma / Select language / Selecione o idioma:',
         choices: i18n.getAvailableLanguages().map(lang => ({
           name: lang.name,
           value: lang.code

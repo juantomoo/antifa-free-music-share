@@ -12,7 +12,7 @@
 
 **A música pertence ao povo, não às corporações.**
 
-*Disponível em: [English](README.md) | [Español](README.es.md) | [Português](#)*
+*Disponível em: [Español](README.md) | [English](README-en.md) | [Português](#)*
 
 ---
 
@@ -83,7 +83,24 @@ Esta ferramenta se destaca em encontrar metadados precisos para:
 - **Spotify** - $0.003-0.004 por stream, financia tech sionista, censura artistas
 - **Apple Music** - $0.01 por stream (ainda explorador), ecossistema fechado
 - **Amazon Music** - Exploração de trabalhadores + exploração de artistas
-- **YouTube Music** - Monopólio do Google, compensação terrível para artistas
+- **YouTube Music** - Monopólio do Google que censura documentários de direitos humanos palestinos
+
+#### 🚨 Censura Ativa do YouTube contra a Palestina
+
+Em novembro de 2025, o YouTube deletou mais de **700 vídeos que documentavam crimes de guerra israelenses** em Gaza e na Cisjordânia, fechando as contas de três organizações palestinas de direitos humanos: Al-Haq, o Centro Al Mezan para os Direitos Humanos e o Centro Palestino para os Direitos Humanos.
+
+O conteúdo eliminado incluía:
+- 📹 Documentário com testemunhos de mães sobreviventes do genocídio em Gaza
+- 🎥 Investigação sobre o assassinato da jornalista Shireen Abu Akleh
+- 📸 Evidência de destruição de residências palestinas na Cisjordânia
+
+**O YouTube agiu sob pressão do governo Trump e suas sanções contra organizações que cooperaram com a Corte Penal Internacional** em casos de crimes de guerra israelenses.
+
+> "A remoção pelo YouTube representa uma grave violação de princípios e um retrocesso alarmante para os direitos humanos e a liberdade de expressão." - Porta-voz da Al-Haq
+
+**Por isso também boicotamos o YouTube:** Eles não apenas exploram artistas—silenciam ativamente vozes palestinas e encobrem genocídio.
+
+📰 Fonte: [HispanTV - YouTube deleta 700 vídeos que documentam crimes de guerra israelenses](https://www.hispantv.com/noticias/palestina/634255/youtube-borra-videos-crimenes-israelies) (5 de novembro de 2025)
 
 ### 📊 A Matemática
 
