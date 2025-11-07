@@ -23,20 +23,32 @@ Aplicación Android creada colectivamente entre múltiples colectivos del Sur Gl
 
 ---
 
-## 🎵 Funcionalidades
+### Funcionalidades Disponibles
 
-### ✅ Búsqueda de Música
-- **Sin backend requerido**: Búsqueda directa en YouTube
-- **Sin API key**: Parse de HTML de YouTube
-- **Cache inteligente**: Resultados almacenados 1 hora
-- **Fallback automático**: Google Suggest API si falla el método principal
-- **20 resultados** con título, artista, duración y miniatura
+#### 1. Búsqueda de Música ✅
+- **Búsqueda client-side**: Parsea HTML de YouTube sin requerir API keys
+- **Cache inteligente**: Guarda resultados por 1 hora para reducir peticiones
+- **Fallback automático**: Google Suggest API si YouTube no responde
+- **Resultados completos**: Título, artista, duración, thumbnail, URL
 
-### ✅ Gestión de Almacenamiento
-- **Permisos automáticos**: Solicitud al iniciar
-- **Ruta predeterminada**: `/storage/emulated/0/Music/AntifaFreeMusic`
-- **Creación automática** de carpetas
-- **Mensajes en 3 idiomas**: ES, EN, PT
+#### 2. **Descarga de Audio** ✅
+- **100% Local**: Todo el procesamiento ocurre en el dispositivo del usuario
+- **Sin servidores propios**: Usa APIs públicas (Invidious, yt-dlp API)
+- **Sin costos**: Infraestructura completamente gratuita
+- **Pipeline completo**:
+  1. Extracción de URL de stream (Invidious API pública)
+  2. Descarga de audio con seguimiento de progreso
+  3. Conversión a MP3 usando FFmpeg.wasm (WebAssembly)
+  4. Agregado de metadata ID3
+  5. Descarga de cover art automática
+  6. Guardado en almacenamiento externo
+
+#### 3. Almacenamiento ✅
+- **Carpeta predeterminada**: `/storage/emulated/0/Music/AntifaFreeMusic`
+- **Permisos automáticos**: Solicita permisos al iniciar la app
+- **Selector de carpeta**: Permite elegir ubicación personalizada
+- **Creación automática**: Crea directorios si no existen
+- **Compatible con File Manager**: Archivos visibles en cualquier app de música
 
 ### ✅ Características Visuales
 - **Logo personalizado**: Puño levantado en colores cian/magenta
@@ -94,18 +106,16 @@ ACCESS_NETWORK_STATE        - Verificar conexión
 
 ### ⚠️ Limitaciones Actuales en Android
 
-#### Funcionalidades NO Disponibles:
-1. **Descarga de música**: Requiere backend o implementación nativa
-2. **Actualizar metadata**: node-id3 no funciona en Android
-3. **Agregar portadas**: Requiere acceso a archivos locales
-4. **Agregar letras**: Requiere manipulación de archivos MP3
-5. **Playlists**: Depende de yt-dlp
+Las siguientes funciones están en desarrollo progresivo:
+- **Metadata editor**: Escritura de tags ID3 está en proceso
+- **Cover art customization**: Por ahora descarga automáticamente desde thumbnail
+- **Lyrics integration**: Previsto para próxima versión
 
-#### ¿Por qué?
-Android no puede ejecutar comandos de sistema (yt-dlp, ffmpeg, Python). Necesitarías:
-- **Opción A**: Servidor backend que procese descargas
-- **Opción B**: Librerías nativas Android (Java/Kotlin)
-- **Opción C**: WebAssembly (experimental)
+Sin embargo, todas las funciones principales están operativas:
+- ✅ Búsqueda funcional
+- ✅ Descarga real con conversión local
+- ✅ Almacenamiento con permisos
+- ✅ Progreso en tiempo real
 
 ---
 

@@ -411,25 +411,90 @@ async function downloadSingleTrack(track) {
     return;
   }
 
+  // Verificar que download manager esté disponible
+  if (!window.downloadManager) {
+    showNotification('⚠️ Download manager no está listo. Recarga la página.', 'warning');
+    return;
+  }
+
   showNotification(t('notifyDownloading'), 'info');
   
   const progressSection = document.getElementById('progress-section');
+  const progressFill = document.getElementById('progress-fill');
+  const progressText = document.getElementById('progress-text');
+  const progressMessage = document.getElementById('progress-message');
+  
   progressSection.style.display = 'block';
+  progressFill.style.width = '0%';
+  progressText.textContent = '0%';
+
+  // Extraer videoId de la URL
+  let videoId = track.videoId;
+  if (!videoId && track.url) {
+    const match = track.url.match(/[?&]v=([^&]+)/);
+    if (match) videoId = match[1];
+  }
+
+  if (!videoId) {
+    showNotification('❌ No se pudo obtener el ID del video', 'error');
+    progressSection.style.display = 'none';
+    return;
+  }
 
   try {
-    const result = await window.electronAPI.downloadTracks([track], downloadPath);
+    const result = await window.downloadManager.downloadTrack(videoId, track, {
+      onProgress: (progress) => {
+        const percentage = Math.round(progress.progress || 0);
+        progressFill.style.width = `${percentage}%`;
+        progressText.textContent = `${percentage}%`;
+        
+        // Mostrar información de progreso
+        if (progress.loaded && progress.total) {
+          const loadedMB = (progress.loaded / 1024 / 1024).toFixed(2);
+          const totalMB = (progress.total / 1024 / 1024).toFixed(2);
+          progressMessage.textContent = `Descargando: ${loadedMB} MB / ${totalMB} MB`;
+        }
+      },
+      
+      onStatusChange: (status) => {
+        const statusMessages = {
+          'fetching_info': '🔍 Obteniendo información...',
+          'downloading': '⬇️ Descargando audio...',
+          'converting': '🔄 Convirtiendo a MP3...',
+          'metadata': '🏷️ Agregando metadata...',
+          'cover': '🖼️ Descargando cover art...',
+          'saving': '💾 Guardando archivo...',
+          'completed': '✅ ¡Completado!'
+        };
+        
+        const message = statusMessages[status.status] || status.message;
+        progressMessage.textContent = message;
+      },
+      
+      onComplete: (data) => {
+        showNotification(`✅ ${track.title} descargado exitosamente`, 'success');
+        progressFill.style.width = '100%';
+        progressText.textContent = '100%';
+        progressMessage.textContent = `✅ Guardado: ${data.filename}`;
+      },
+      
+      onError: (error) => {
+        showNotification(`❌ Error: ${error.message}`, 'error');
+        progressMessage.textContent = `❌ Error: ${error.message}`;
+      }
+    });
     
-    if (result.success) {
-      showNotification(`✅ ${track.title}`, 'success');
-    } else {
-      showNotification(`${t('notifyError')}: ${result.error}`, 'error');
+    if (!result.success) {
+      showNotification(`❌ ${result.error}`, 'error');
     }
   } catch (error) {
-    showNotification(`${t('notifyError')}: ${error.message}`, 'error');
+    console.error('Download error:', error);
+    showNotification(`❌ Error: ${error.message}`, 'error');
+    progressMessage.textContent = `❌ Error: ${error.message}`;
   } finally {
     setTimeout(() => {
       progressSection.style.display = 'none';
-    }, 2000);
+    }, 3000);
   }
 }
 

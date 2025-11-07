@@ -299,7 +299,16 @@ El idioma se selecciona al inicio. Todos los mensajes, menús y textos de libera
 
 ---
 
-## 📄 Licencia
+## � Documentación
+
+- **[Arquitectura de Descargas](ARQUITECTURA-DESCARGAS.md)** - Cómo funciona el sistema 100% local
+- **[Guía Android](ANDROID-README.md)** - Instalación y uso en Android
+- **[Guía Electron](ELECTRON-README.md)** - Instalación y uso en Desktop
+- **[APIs Usadas](APIs.md)** - MusicBrainz, Cover Art Archive, etc.
+
+---
+
+## �📄 Licencia
 
 **GPL-3.0-or-later**
 
