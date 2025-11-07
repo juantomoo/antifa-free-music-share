@@ -5,6 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🚩 Antifa Free Music Share</title>
   <link rel="stylesheet" href="styles.css">
+  
+  <!-- Capacitor Core (for Android) -->
+  <script type="module">
+    // Load Capacitor only on Android/Capacitor environment
+    if (window.Capacitor) {
+      import('https://cdn.jsdelivr.net/npm/@capacitor/core@latest/dist/index.js').then(module => {
+        window.Capacitor = module.Capacitor;
+      });
+      import('https://cdn.jsdelivr.net/npm/@capacitor/filesystem@latest/dist/index.js').then(module => {
+        window.Filesystem = module.Filesystem;
+        window.Directory = module.Directory;
+      });
+      import('https://cdn.jsdelivr.net/npm/@capacitor/app@latest/dist/index.js').then(module => {
+        window.App = module.App;
+      });
+    }
+  </script>
 </head>
 <body>
   <div class="container">
@@ -189,6 +206,8 @@
   </div>
 
   <script src="i18n.js"></script>
+  <script src="youtube-search-client.js"></script>
+  <script src="storage-manager.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

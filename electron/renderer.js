@@ -4,6 +4,22 @@ document.addEventListener('DOMContentLoaded', () => {
     initLanguage();
   }
   
+  // Initialize storage manager and request permissions on Android
+  if (window.storageManager && window.storageManager.isAndroid) {
+    setTimeout(async () => {
+      const hasPermission = await window.storageManager.requestPermissions();
+      if (hasPermission) {
+        // Set default download path
+        const defaultPath = window.storageManager.defaultPath;
+        document.getElementById('download-path').value = defaultPath;
+        // Ensure directory exists
+        await window.storageManager.ensureDirectory(defaultPath);
+      } else {
+        window.storageManager.showPermissionMessage();
+      }
+    }, 1000);
+  }
+  
   // Language selector
   document.getElementById('language-select').addEventListener('change', (e) => {
     if (typeof setLanguage === 'function') {
@@ -57,33 +73,92 @@ document.querySelectorAll('.tab').forEach(tab => {
 
 // Select download folder (for downloads)
 document.getElementById('select-path-btn').addEventListener('click', async () => {
-  const path = await window.electronAPI.selectDownloadFolder();
-  if (path) {
-    document.getElementById('download-path').value = path;
+  try {
+    let path;
+    if (window.storageManager) {
+      path = await window.storageManager.selectFolder();
+    } else if (window.electronAPI) {
+      path = await window.electronAPI.selectDownloadFolder();
+    }
+    
+    if (path) {
+      document.getElementById('download-path').value = path;
+      // Ensure directory exists
+      if (window.storageManager) {
+        await window.storageManager.ensureDirectory(path);
+      }
+      showNotification('✅ Carpeta seleccionada: ' + path, 'success');
+    }
+  } catch (error) {
+    console.error('Error selecting folder:', error);
+    if (window.storageManager && window.storageManager.isAndroid) {
+      window.storageManager.showPermissionMessage();
+    } else {
+      showNotification('❌ Error: ' + error.message, 'error');
+    }
   }
 });
 
 // Select metadata folder
 document.getElementById('select-metadata-btn').addEventListener('click', async () => {
-  const path = await window.electronAPI.selectFolder();
-  if (path) {
-    document.getElementById('metadata-folder').value = path;
+  try {
+    let path;
+    if (window.storageManager) {
+      path = await window.storageManager.selectFolder();
+    } else if (window.electronAPI) {
+      path = await window.electronAPI.selectFolder();
+    }
+    
+    if (path) {
+      document.getElementById('metadata-folder').value = path;
+    }
+  } catch (error) {
+    console.error('Error selecting folder:', error);
+    if (window.storageManager && window.storageManager.isAndroid) {
+      window.storageManager.showPermissionMessage();
+    }
   }
 });
 
 // Select cover art folder
 document.getElementById('select-coverart-btn').addEventListener('click', async () => {
-  const path = await window.electronAPI.selectFolder();
-  if (path) {
-    document.getElementById('coverart-folder').value = path;
+  try {
+    let path;
+    if (window.storageManager) {
+      path = await window.storageManager.selectFolder();
+    } else if (window.electronAPI) {
+      path = await window.electronAPI.selectFolder();
+    }
+    
+    if (path) {
+      document.getElementById('coverart-folder').value = path;
+    }
+  } catch (error) {
+    console.error('Error selecting folder:', error);
+    if (window.storageManager && window.storageManager.isAndroid) {
+      window.storageManager.showPermissionMessage();
+    }
   }
 });
 
 // Select lyrics folder
 document.getElementById('select-lyrics-btn').addEventListener('click', async () => {
-  const path = await window.electronAPI.selectFolder();
-  if (path) {
-    document.getElementById('lyrics-folder').value = path;
+  try {
+    let path;
+    if (window.storageManager) {
+      path = await window.storageManager.selectFolder();
+    } else if (window.electronAPI) {
+      path = await window.electronAPI.selectFolder();
+    }
+    
+    if (path) {
+      document.getElementById('lyrics-folder').value = path;
+    }
+  } catch (error) {
+    console.error('Error selecting folder:', error);
+    if (window.storageManager && window.storageManager.isAndroid) {
+      window.storageManager.showPermissionMessage();
+    }
   }
 });
 
@@ -99,14 +174,33 @@ document.getElementById('search-btn').addEventListener('click', async () => {
   resultsContainer.innerHTML = '<div class="loading"></div> <span style="margin-left: 10px;">Buscando...</span>';
 
   try {
-    const result = await window.electronAPI.searchTracks(query);
+    let tracks = [];
     
-    if (result.success && result.tracks.length > 0) {
-      displaySearchResults(result.tracks);
+    // Try Electron API first (if available)
+    if (window.electronAPI && window.electronAPI.searchTracks) {
+      try {
+        const result = await window.electronAPI.searchTracks(query);
+        if (result.success && result.tracks.length > 0) {
+          tracks = result.tracks;
+        }
+      } catch (electronError) {
+        console.log('Electron search failed, falling back to client search:', electronError);
+      }
+    }
+    
+    // Fallback to client-side search (works in Android/Web)
+    if (tracks.length === 0 && window.youtubeSearchClient) {
+      console.log('Using client-side YouTube search');
+      tracks = await window.youtubeSearchClient.searchTracks(query);
+    }
+    
+    if (tracks.length > 0) {
+      displaySearchResults(tracks);
     } else {
       resultsContainer.innerHTML = `<p style="color: var(--text-tertiary);">${t('noResults')}</p>`;
     }
   } catch (error) {
+    console.error('Search error:', error);
     resultsContainer.innerHTML = `<p style="color: var(--accent-red);">${t('notifyError')}: ${error.message}</p>`;
   }
 });
