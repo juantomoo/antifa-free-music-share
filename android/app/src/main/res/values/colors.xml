@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Color Scheme - Cyberpunk/Antifa Style -->
+    <color name="colorPrimary">#00FFFF</color> <!-- Cyan -->
+    <color name="colorPrimaryDark">#050A1E</color> <!-- Dark Blue -->
+    <color name="colorAccent">#FF0064</color> <!-- Magenta/Pink -->
+    
+    <!-- Background Colors -->
+    <color name="backgroundColor">#050A1E</color>
+    <color name="backgroundSecondary">#0A0E27</color>
+    
+    <!-- Text Colors -->
+    <color name="textPrimary">#E0E6F8</color>
+    <color name="textSecondary">#A0A8C8</color>
+    <color name="textTertiary">#707898</color>
+    
+    <!-- Accent Colors -->
+    <color name="accentCyan">#00FFFF</color>
+    <color name="accentMagenta">#FF0064</color>
+    <color name="accentGreen">#00FF41</color>
+    
+    <!-- Border Colors -->
+    <color name="borderColor">#1E2847</color>
+    
+    <!-- Status Bar -->
+    <color name="statusBarColor">#050A1E</color>
+    
+    <!-- Launcher Background -->
+    <color name="ic_launcher_background">#050A1E</color>
+</resources>

@@ -4,4 +4,11 @@
     <string name="title_activity_main">Antifa Free Music Share</string>
     <string name="package_name">com.antifa.freemusicshare</string>
     <string name="custom_url_scheme">com.antifa.freemusicshare</string>
+    
+    <!-- App Description -->
+    <string name="app_description">Creado colectivamente entre múltiples colectivos del Sur Global para democratizar el acceso a la música y la cultura.</string>
+    <string name="app_contact">legal.dmca.globalsouth@proton.me</string>
+    <string name="app_license">GPL-3.0</string>
+    
+    <!-- Idiomas soportados: Español, Inglés, Português -->
 </resources>

@@ -32,7 +32,7 @@ const translations = {
     
     // Search
     searchLabel: '🎵 Buscar canción o artista:',
-    searchPlaceholder: 'Ej: Magneto Para Siempre',
+    searchPlaceholder: 'Ej: London After Midnight - Are You Feeling Fascist',
     searchButton: 'Buscar',
     
     // Playlist
@@ -77,8 +77,9 @@ const translations = {
     downloadTrack: '📥 Descargar',
     
     // Footer
-    footerBuilt: '✊ Construido con amor por la comunidad | GPL-3.0 License',
-    footerQuote: '🌱 Martha Nussbaum: "Las capacidades humanas florecen en libertad"'
+    footerBuilt: '✊ Creado colectivamente entre múltiples colectivos del Sur Global',
+    footerQuote: '🌱 Invitamos a otros colectivos a compartir y colaborar | GPL-3.0',
+    footerDisclaimer: '⚖️ Ver Términos y Exención de Responsabilidad'
   },
   
   en: {
@@ -113,7 +114,7 @@ const translations = {
     
     // Search
     searchLabel: '🎵 Search song or artist:',
-    searchPlaceholder: 'E.g: Magneto Para Siempre',
+    searchPlaceholder: 'E.g: London After Midnight - Are You Feeling Fascist',
     searchButton: 'Search',
     
     // Playlist
@@ -158,8 +159,9 @@ const translations = {
     downloadTrack: '📥 Download',
     
     // Footer
-    footerBuilt: '✊ Built with love by the community | GPL-3.0 License',
-    footerQuote: '🌱 Martha Nussbaum: "Human capabilities flourish in freedom"'
+    footerBuilt: '✊ Collectively created among multiple collectives from the Global South',
+    footerQuote: '🌱 We invite other collectives to share and collaborate | GPL-3.0',
+    footerDisclaimer: '⚖️ View Terms and Disclaimer'
   },
   
   pt: {
@@ -194,7 +196,7 @@ const translations = {
     
     // Search
     searchLabel: '🎵 Buscar música ou artista:',
-    searchPlaceholder: 'Ex: Magneto Para Siempre',
+    searchPlaceholder: 'Ex: London After Midnight - Are You Feeling Fascist',
     searchButton: 'Buscar',
     
     // Playlist
@@ -239,8 +241,9 @@ const translations = {
     downloadTrack: '📥 Baixar',
     
     // Footer
-    footerBuilt: '✊ Construído com amor pela comunidade | GPL-3.0 License',
-    footerQuote: '🌱 Martha Nussbaum: "As capacidades humanas florescem em liberdade"'
+    footerBuilt: '✊ Criado coletivamente entre múltiplos coletivos do Sul Global',
+    footerQuote: '🌱 Convidamos outros coletivos a compartilhar e colaborar | GPL-3.0',
+    footerDisclaimer: '⚖️ Ver Termos e Isenção de Responsabilidade'
   }
 };
 

@@ -39,10 +39,17 @@ body {
 }
 
 .container {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  padding-bottom: 180px; /* Espacio para footer y mensajes reflexivos sticky */
+  padding-bottom: 180px; /* Espacio para footer y mensajes sticky */
+}
+
+/* En móviles, agregar más espacio para el teclado */
+@media (max-width: 768px) {
+  .container {
+    padding-bottom: 250px;
+  }
 }
 
 /* Language Selector */
@@ -448,6 +455,16 @@ body {
   backdrop-filter: blur(10px);
 }
 
+/* En móviles, mensajes más pequeños y abajo */
+@media (max-width: 768px) {
+  .reflexive-message {
+    bottom: 60px;
+    width: 95%;
+    padding: 10px 15px;
+    font-size: 12px;
+  }
+}
+
 .reflexive-message p {
   margin: 5px 0;
   color: var(--text-primary);
@@ -473,6 +490,14 @@ footer {
   z-index: 10000; /* Mayor que modal */
   backdrop-filter: blur(10px);
   box-shadow: 0 -5px 20px rgba(0, 255, 65, 0.2);
+}
+
+/* En móviles, footer más compacto */
+@media (max-width: 768px) {
+  footer {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
 }
 
 footer p {

@@ -16,6 +16,20 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+
+  // Disclaimer link
+  const disclaimerLink = document.getElementById('disclaimer-link');
+  if (disclaimerLink) {
+    disclaimerLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (window.electronAPI && window.electronAPI.openExternal) {
+        window.electronAPI.openExternal('disclaimer.html');
+      } else {
+        // En Android/Web, abrir en la misma ventana
+        window.location.href = 'disclaimer.html';
+      }
+    });
+  }
 });
 
 // Update dynamic content after language change
