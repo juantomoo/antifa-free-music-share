@@ -441,14 +441,31 @@ class YTMusicDownloader {
     const tracksToDownload = [];
     
     for (const track of selectedTracks) {
+      this.logger.debug(`🔍 Processing search result track:`);
+      this.logger.debug(`   Title: ${track.title}`);
+      this.logger.debug(`   Artist: ${track.artist}`);
+      this.logger.debug(`   URL: ${track.url}`);
+      this.logger.debug(`   Album: ${track.album || 'N/A'}`);
+      
       if (track.url) {
         // Use getPlaylistTracks to get full metadata (this workflow works!)
+        this.logger.debug(`📥 Calling getPlaylistTracks for: ${track.url}`);
         const fullTrackData = await this.getPlaylistTracks(track.url);
+        
+        this.logger.debug(`📊 getPlaylistTracks returned ${fullTrackData.length} tracks`);
         if (fullTrackData.length > 0) {
+          this.logger.debug(`✅ First track data:`);
+          this.logger.debug(JSON.stringify(fullTrackData[0], null, 2));
           tracksToDownload.push(fullTrackData[0]);
+        } else {
+          this.logger.error(`❌ getPlaylistTracks returned empty array for: ${track.url}`);
         }
+      } else {
+        this.logger.error(`❌ Track missing URL: ${track.title}`);
       }
     }
+    
+    this.logger.debug(`🎵 Total tracks to download: ${tracksToDownload.length}`);
     
     if (tracksToDownload.length === 0) {
       console.log(chalk.red('Failed to process selected tracks'));
@@ -456,6 +473,7 @@ class YTMusicDownloader {
     }
 
     // Download using the working parallel workflow
+    this.logger.debug(`🚀 Starting downloadPlaylistParallel with ${tracksToDownload.length} tracks`);
     await this.downloadPlaylistParallel(tracksToDownload);
     
     console.log(chalk.yellow('\n' + t.liberationMessages.afterDownload));
@@ -471,26 +489,43 @@ class YTMusicDownloader {
     album: string;
     year: number | null;
     url: string;
+    filename: string;
     thumbnailUrl: string | null;
   }>> {
+    this.logger.debug(`📋 getPlaylistTracks called with URL: ${playlistUrl}`);
+    
     const { spawn } = require('child_process');
     const { execSync } = require('child_process');
     
     // Check if it's a single video or a playlist
     const isSingleVideo = /watch\?v=/.test(playlistUrl) && !/list=/.test(playlistUrl);
     
+    this.logger.debug(`🔍 URL type: ${isSingleVideo ? 'Single Video' : 'Playlist'}`);
+    
     if (isSingleVideo) {
       // Handle single video directly
       console.log(chalk.blue(`🎵 Processing single track...`));
       
       try {
+        this.logger.debug(`🎬 Running yt-dlp --dump-json for: ${playlistUrl}`);
+        
         const jsonOutput = execSync(`yt-dlp --dump-json "${playlistUrl}"`, {
           encoding: 'utf8',
           maxBuffer: 10 * 1024 * 1024,
           timeout: 30000
         });
         
+        this.logger.debug(`📦 yt-dlp returned ${jsonOutput.length} bytes of JSON`);
+        
         const metadata = JSON.parse(jsonOutput);
+        
+        this.logger.debug(`🎵 Extracted metadata:`);
+        this.logger.debug(`   track: ${metadata.track}`);
+        this.logger.debug(`   title: ${metadata.title}`);
+        this.logger.debug(`   artist: ${metadata.artist}`);
+        this.logger.debug(`   artists: ${JSON.stringify(metadata.artists)}`);
+        this.logger.debug(`   uploader: ${metadata.uploader}`);
+        this.logger.debug(`   album: ${metadata.album}`);
         
         const track = metadata.track || metadata.title || 'Unknown Track';
         const artist = metadata.artist || metadata.artists?.[0] || metadata.uploader?.replace(' - Topic', '') || 'Unknown Artist';
@@ -505,16 +540,28 @@ class YTMusicDownloader {
         
         console.log(chalk.green(`✓ Found: ${artist} - ${track}`));
         
-        return [{
+        // Generate filename
+        const sanitizedArtist = artist.replace(/[<>:"/\\|?*]/g, '');
+        const sanitizedTrack = track.replace(/[<>:"/\\|?*]/g, '');
+        const filename = `${sanitizedArtist} - ${sanitizedTrack}.mp3`;
+        
+        const result = {
           title: track,
           artist: artist,
           album: album,
           year: year,
           url: playlistUrl,
+          filename: filename,
           thumbnailUrl: thumbnailUrl
-        }];
+        };
+        
+        this.logger.debug(`✅ Returning track object:`);
+        this.logger.debug(JSON.stringify(result, null, 2));
+        
+        return [result];
       } catch (error) {
-        this.logger.error(`Failed to get metadata: ${error.message}`);
+        this.logger.error(`❌ Failed to get metadata: ${error.message}`);
+        this.logger.error(`Stack trace: ${error.stack}`);
         return [];
       }
     }
@@ -553,6 +600,7 @@ class YTMusicDownloader {
       album: string;
       year: number | null;
       url: string;
+      filename: string;
       thumbnailUrl: string | null;
     }> = [];
     
@@ -586,12 +634,18 @@ class YTMusicDownloader {
           thumbnailUrl = sorted[0]?.url || null;
         }
         
+        // Generate filename
+        const sanitizedArtist = artist.replace(/[<>:"/\\|?*]/g, '');
+        const sanitizedTrack = track.replace(/[<>:"/\\|?*]/g, '');
+        const filename = `${sanitizedArtist} - ${sanitizedTrack}.mp3`;
+        
         tracks.push({
           title: track,
           artist: artist,
           album: album,
           year: year,
           url: videoUrl,
+          filename: filename,
           thumbnailUrl: thumbnailUrl
         });
         
@@ -606,6 +660,7 @@ class YTMusicDownloader {
           album: 'Unknown Album',
           year: null,
           url: videoUrl,
+          filename: 'Unknown Artist - Unknown Track.mp3',
           thumbnailUrl: null
         });
       }
@@ -795,6 +850,20 @@ class YTMusicDownloader {
     filename: string,
     thumbnailUrl: string | null
   }>): Promise<void> {
+    this.logger.debug(`🚀 downloadPlaylistParallel called with ${tracks.length} tracks`);
+    
+    // Debug: Log each track to see what we're receiving
+    tracks.forEach((track, index) => {
+      this.logger.debug(`Track ${index + 1}:`);
+      this.logger.debug(`  title: ${track.title}`);
+      this.logger.debug(`  artist: ${track.artist}`);
+      this.logger.debug(`  album: ${track.album}`);
+      this.logger.debug(`  year: ${track.year}`);
+      this.logger.debug(`  url: ${track.url}`);
+      this.logger.debug(`  filename: ${track.filename || 'UNDEFINED!'}`);
+      this.logger.debug(`  thumbnailUrl: ${track.thumbnailUrl || 'null'}`);
+    });
+    
     console.log(chalk.blue('\n🎵 Starting parallel downloads...\n'));
     
     const completedTracks: string[] = [];
