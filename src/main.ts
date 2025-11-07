@@ -495,7 +495,9 @@ class YTMusicDownloader {
     this.logger.debug(`📋 getPlaylistTracks called with URL: ${playlistUrl}`);
     
     const { spawn } = require('child_process');
-    const { execSync } = require('child_process');
+    const { exec } = require('child_process');
+    const util = require('util');
+    const execAsync = util.promisify(exec);
     
     // Check if it's a single video or a playlist
     const isSingleVideo = /watch\?v=/.test(playlistUrl) && !/list=/.test(playlistUrl);
@@ -510,7 +512,7 @@ class YTMusicDownloader {
         this.logger.debug(`🎬 Running yt-dlp --dump-json for: ${playlistUrl}`);
         
         // Suppress stderr warnings from yt-dlp
-        const jsonOutput = execSync(`yt-dlp --dump-json "${playlistUrl}" 2>/dev/null`, {
+        const { stdout: jsonOutput } = await execAsync(`yt-dlp --dump-json "${playlistUrl}" 2>/dev/null`, {
           encoding: 'utf8',
           maxBuffer: 10 * 1024 * 1024,
           timeout: 30000
@@ -595,7 +597,7 @@ class YTMusicDownloader {
     console.log(chalk.blue(`🔍 Extracting complete metadata for each track...`));
     console.log(chalk.gray(`\n💭 Mientras esperamos, reflexionemos juntos...\n`));
     
-    // Mensajes reflexivos inspirados en Martha Nussbaum - Enfoque de Capacidades
+    // Mensaje reflexivo inspirado en Martha Nussbaum - Enfoque de Capacidades
     const reflexiveMessages = [
       {
         message: "🌱 El acceso a la cultura es una capacidad humana fundamental.",
@@ -670,36 +672,35 @@ class YTMusicDownloader {
       thumbnailUrl: string | null;
     }> = [];
     
-    // Mostrar mensaje reflexivo inicial
-    const randomMessage = reflexiveMessages[Math.floor(Math.random() * reflexiveMessages.length)];
-    console.log(chalk.cyan(`${randomMessage.message}`));
-    console.log(chalk.gray(`${randomMessage.context}\n`));
-    
-    const progressBar = ora({
-      text: `Procesando pista 1/${urls.length}`,
-      spinner: 'dots'
-    }).start();
-    
-    // Interval para rotar mensajes cada 30 segundos
+    // Mostrar primer mensaje reflexivo
     let messageIndex = 0;
+    console.log(chalk.cyan(`${reflexiveMessages[messageIndex].message}`));
+    console.log(chalk.gray(`${reflexiveMessages[messageIndex].context}\n`));
+    
+    // Rotar mensajes cada 10 segundos
     const messageInterval = setInterval(() => {
       messageIndex = (messageIndex + 1) % reflexiveMessages.length;
-      const msg = reflexiveMessages[messageIndex];
-      progressBar.stopAndPersist({
-        symbol: chalk.cyan('💭'),
-        text: chalk.cyan(msg.message)
-      });
-      console.log(chalk.gray(`   ${msg.context}\n`));
-      progressBar.start();
-    }, 30000); // Cada 30 segundos
+      console.log(chalk.cyan(`\n${reflexiveMessages[messageIndex].message}`));
+      console.log(chalk.gray(`${reflexiveMessages[messageIndex].context}`));
+    }, 10000); // Cada 10 segundos
+    
+    const startTime = Date.now();
     
     for (let i = 0; i < urls.length; i++) {
       const videoUrl = urls[i];
-      progressBar.text = `Procesando pista ${i + 1}/${urls.length} - ${Math.round((i / urls.length) * 100)}%`;
+      const percentage = Math.round((i / urls.length) * 100);
+      const elapsed = Math.round((Date.now() - startTime) / 1000);
+      const avgTimePerTrack = elapsed / (i || 1);
+      const remaining = Math.round(avgTimePerTrack * (urls.length - i));
+      
+      // Show progress every 5 tracks or at significant milestones
+      if (i === 0 || (i + 1) % 5 === 0 || i === urls.length - 1) {
+        console.log(chalk.yellow(`⏳ Procesando: ${i + 1}/${urls.length} (${percentage}%) - Tiempo restante: ~${Math.floor(remaining / 60)}m ${remaining % 60}s`));
+      }
       
       try {
         // Get JSON metadata for this specific video (suppress stderr warnings)
-        const jsonOutput = execSync(`yt-dlp --dump-json "${videoUrl}" 2>/dev/null`, {
+        const { stdout: jsonOutput } = await execAsync(`yt-dlp --dump-json "${videoUrl}" 2>/dev/null`, {
           encoding: 'utf8',
           maxBuffer: 10 * 1024 * 1024, // 10MB buffer
           timeout: 30000 // 30 second timeout per track
@@ -753,11 +754,12 @@ class YTMusicDownloader {
       }
     }
     
-    // Clear the message interval
+    // Stop message rotation
     clearInterval(messageInterval);
     
-    progressBar.succeed(chalk.green(`✅ Metadata extraída para ${tracks.length} pistas`));
-    console.log(chalk.gray(`\n🌟 Gracias por tomarte este tiempo para reflexionar. Juntos construimos un mundo mejor.\n`));
+    // Show completion
+    console.log(chalk.green(`\n✅ Metadata extraída para ${tracks.length} pistas`));
+    console.log(chalk.cyan(`🌟 Gracias por tomarte este tiempo para reflexionar. Juntos construimos un mundo mejor.\n`));
     
     return tracks;
   }
