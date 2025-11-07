@@ -44,6 +44,46 @@ body {
   padding: 20px;
 }
 
+/* Language Selector */
+.language-selector {
+  text-align: right;
+  margin-bottom: 20px;
+  padding: 10px;
+}
+
+.language-selector label {
+  color: var(--text-primary);
+  margin-right: 10px;
+  font-size: 14px;
+}
+
+.language-dropdown {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 2px solid var(--border-color);
+  border-radius: 5px;
+  padding: 8px 15px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.language-dropdown:hover {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.language-dropdown:focus {
+  outline: none;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+}
+
+.language-dropdown option {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
 /* Header */
 .header {
   text-align: center;

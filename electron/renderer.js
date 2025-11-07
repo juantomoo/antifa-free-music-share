@@ -62,12 +62,17 @@ document.getElementById('playlist-btn').addEventListener('click', async () => {
   // Show progress section
   const progressSection = document.getElementById('progress-section');
   progressSection.classList.remove('hidden');
+  
+  // Disable button during download
+  const btn = document.getElementById('playlist-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Procesando...';
 
   try {
     const result = await window.electronAPI.downloadPlaylist(url, downloadPath);
     
     if (result.success) {
-      showNotification(`✅ ${result.message}`, 'success');
+      showNotification(result.message || '✅ Descarga completada', 'success');
     } else {
       showNotification(`❌ Error: ${result.error}`, 'error');
     }
@@ -75,6 +80,8 @@ document.getElementById('playlist-btn').addEventListener('click', async () => {
     showNotification(`❌ Error: ${error.message}`, 'error');
   } finally {
     progressSection.classList.add('hidden');
+    btn.disabled = false;
+    btn.textContent = 'Descargar Playlist';
   }
 });
 
@@ -83,24 +90,38 @@ function displaySearchResults(tracks) {
   const resultsContainer = document.getElementById('search-results');
   resultsContainer.innerHTML = '';
 
-  tracks.forEach(track => {
+  if (tracks.length === 0) {
+    resultsContainer.innerHTML = '<p style="color: var(--text-tertiary);">No se encontraron resultados.</p>';
+    return;
+  }
+
+  tracks.forEach((track, index) => {
     const resultItem = document.createElement('div');
     resultItem.className = 'result-item';
+    resultItem.setAttribute('data-track-index', index);
     
     resultItem.innerHTML = `
       <div class="result-info">
         <div class="result-title">${track.title}</div>
         <div class="result-artist">${track.artist} ${track.album ? `• ${track.album}` : ''}</div>
       </div>
-      <button class="btn btn-primary" onclick="downloadTrack('${track.id}')">📥 Descargar</button>
+      <button class="btn btn-primary download-track-btn" data-track-index="${index}">📥 Descargar</button>
     `;
     
     resultsContainer.appendChild(resultItem);
   });
+
+  // Add event listeners to download buttons
+  document.querySelectorAll('.download-track-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const index = parseInt(e.target.getAttribute('data-track-index'));
+      downloadSingleTrack(tracks[index]);
+    });
+  });
 }
 
 // Download single track
-async function downloadTrack(trackId) {
+async function downloadSingleTrack(track) {
   const downloadPath = document.getElementById('download-path').value;
   
   if (!downloadPath) {
@@ -108,10 +129,24 @@ async function downloadTrack(trackId) {
     return;
   }
 
-  showNotification('📥 Iniciando descarga...', 'info');
-  
-  // Here you would call the download API
-  // await window.electronAPI.downloadTracks([track], downloadPath);
+  const progressSection = document.getElementById('progress-section');
+  progressSection.classList.remove('hidden');
+
+  try {
+    showNotification('📥 Iniciando descarga...', 'info');
+    
+    const result = await window.electronAPI.downloadTracks([track], downloadPath);
+    
+    if (result.success) {
+      showNotification(`✅ Descarga completada: ${track.artist} - ${track.title}`, 'success');
+    } else {
+      showNotification(`❌ Error: ${result.error}`, 'error');
+    }
+  } catch (error) {
+    showNotification(`❌ Error: ${error.message}`, 'error');
+  } finally {
+    progressSection.classList.add('hidden');
+  }
 }
 
 // Listen for download progress
