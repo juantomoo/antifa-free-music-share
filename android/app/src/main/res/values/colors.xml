@@ -24,7 +24,4 @@
     
     <!-- Status Bar -->
     <color name="statusBarColor">#050A1E</color>
-    
-    <!-- Launcher Background -->
-    <color name="ic_launcher_background">#050A1E</color>
 </resources>
