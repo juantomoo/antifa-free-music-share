@@ -37,7 +37,7 @@
     "glob": "^11.0.3",
     "inquirer": "^9.2.12",
     "musicbrainz-api": "^0.26.0",
-    "node-id3": "^0.2.6",
+    "node-id3": "^0.2.9",
     "ora": "^7.0.1",
     "p-limit": "^3.1.0",
     "puppeteer": "^21.5.2",

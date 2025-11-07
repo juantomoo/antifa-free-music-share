@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   updateMetadata: (folderPath) => ipcRenderer.invoke('update-metadata', folderPath),
   addCoverArt: (folderPath) => ipcRenderer.invoke('add-cover-art', folderPath),
   addLyrics: (folderPath) => ipcRenderer.invoke('add-lyrics', folderPath),
+  setLanguage: (lang) => ipcRenderer.send('set-language', lang),
   
   // Listeners
   onDownloadProgress: (callback) => ipcRenderer.on('download-progress', (event, data) => callback(data)),

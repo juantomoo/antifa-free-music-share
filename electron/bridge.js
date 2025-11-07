@@ -9,8 +9,22 @@ const fs = require('fs-extra');
 
 class DownloaderBridge {
   constructor() {
-    this.ytmusicSearchScript = path.join(__dirname, '../ytmusic_search.py');
-    this.downloadersPath = path.join(__dirname, '../dist');
+    // Detect if running in packaged app or development
+    const { app } = require('electron');
+    const isDev = !app.isPackaged;
+    
+    if (isDev) {
+      // Development: use project root path
+      this.ytmusicSearchScript = path.join(__dirname, '../ytmusic_search.py');
+      this.downloadersPath = path.join(__dirname, '../dist');
+    } else {
+      // Production: use resources path
+      this.ytmusicSearchScript = path.join(process.resourcesPath, 'ytmusic_search.py');
+      this.downloadersPath = path.join(process.resourcesPath, 'app.asar.unpacked/dist');
+    }
+    
+    console.log('[Bridge] Script path:', this.ytmusicSearchScript);
+    console.log('[Bridge] Downloaders path:', this.downloadersPath);
   }
 
   /**
@@ -312,6 +326,9 @@ class DownloaderBridge {
     try {
       console.log(`[Bridge] Updating metadata for: ${folderPath}`);
       const glob = require('glob');
+      const NodeID3 = require('node-id3');
+      const { MetadataService } = require('../dist/services/metadata');
+      
       const mp3Files = glob.sync(path.join(folderPath, '**/*.mp3'));
       
       if (mp3Files.length === 0) {
@@ -325,33 +342,66 @@ class DownloaderBridge {
         message: `🔍 Analizando ${mp3Files.length} archivos...`,
         percentage: 0,
         current: 0,
-        total: mp3Files.length
+        total: mp3Files.length,
+        files: []
       });
 
+      const metadataService = new MetadataService();
       let completed = 0;
+      let filesProcessed = [];
+
       for (const file of mp3Files) {
         try {
-          // Use the CLI metadata service
-          execSync(`node "${this.downloadersPath}/main.js" update-metadata "${file}"`, {
-            encoding: 'utf8',
-            timeout: 30000
+          const basename = path.basename(file);
+          
+          // Read existing tags
+          const existingTags = NodeID3.read(file);
+          
+          // Try to extract artist and title from filename or existing tags
+          const artist = existingTags.artist || basename.split(' - ')[0] || 'Unknown Artist';
+          const title = existingTags.title || basename.split(' - ')[1]?.replace('.mp3', '') || basename.replace('.mp3', '');
+          
+          // Enhance metadata
+          const enhancedTrack = await metadataService.enhanceTrackMetadata({
+            artist: artist,
+            title: title,
+            album: existingTags.album,
+            year: existingTags.year
           });
           
+          // Update ID3 tags
+          const newTags = {
+            artist: enhancedTrack.artist || artist,
+            title: enhancedTrack.title || title,
+            album: enhancedTrack.album || existingTags.album,
+            year: enhancedTrack.year?.toString() || existingTags.year,
+            genre: enhancedTrack.genre || existingTags.genre,
+            trackNumber: enhancedTrack.trackNumber?.toString() || existingTags.trackNumber
+          };
+          
+          NodeID3.write(newTags, file);
+          
           completed++;
+          filesProcessed.push({ name: basename, status: 'success' });
+          
           progressCallback({
-            message: `✅ ${path.basename(file)}`,
+            message: `✅ ${basename}`,
             percentage: Math.round((completed / mp3Files.length) * 100),
             current: completed,
-            total: mp3Files.length
+            total: mp3Files.length,
+            files: filesProcessed.slice(-10) // Last 10 files
           });
         } catch (error) {
           console.error(`[Bridge] Metadata error for ${file}:`, error.message);
           completed++;
+          filesProcessed.push({ name: path.basename(file), status: 'error' });
+          
           progressCallback({
             message: `⚠️ ${path.basename(file)} (sin cambios)`,
             percentage: Math.round((completed / mp3Files.length) * 100),
             current: completed,
-            total: mp3Files.length
+            total: mp3Files.length,
+            files: filesProcessed.slice(-10)
           });
         }
       }
@@ -377,6 +427,9 @@ class DownloaderBridge {
     try {
       console.log(`[Bridge] Adding cover art for: ${folderPath}`);
       const glob = require('glob');
+      const NodeID3 = require('node-id3');
+      const { CoverArtService } = require('../dist/services/cover-art');
+      
       const mp3Files = glob.sync(path.join(folderPath, '**/*.mp3'));
       
       if (mp3Files.length === 0) {
@@ -390,33 +443,63 @@ class DownloaderBridge {
         message: `🔍 Procesando ${mp3Files.length} archivos...`,
         percentage: 0,
         current: 0,
-        total: mp3Files.length
+        total: mp3Files.length,
+        files: []
       });
 
+      const coverArtService = new CoverArtService();
       let completed = 0;
+      let filesProcessed = [];
+
       for (const file of mp3Files) {
         try {
-          // Use the CLI cover art service
-          execSync(`node "${this.downloadersPath}/main.js" add-cover-art "${file}"`, {
-            encoding: 'utf8',
-            timeout: 30000
-          });
+          const basename = path.basename(file);
           
-          completed++;
-          progressCallback({
-            message: `🖼️ ${path.basename(file)}`,
-            percentage: Math.round((completed / mp3Files.length) * 100),
-            current: completed,
-            total: mp3Files.length
-          });
+          // Read existing tags to get artist and title
+          const tags = NodeID3.read(file);
+          const artist = tags.artist || basename.split(' - ')[0] || 'Unknown Artist';
+          const title = tags.title || basename.split(' - ')[1]?.replace('.mp3', '') || basename.replace('.mp3', '');
+          
+          // Search and download cover art
+          const coverUrl = await coverArtService.searchCoverArt(artist, title, tags.album);
+          
+          if (coverUrl) {
+            const imageBuffer = await coverArtService.downloadCoverArt(coverUrl);
+            
+            // Add cover to ID3 tags
+            NodeID3.update({
+              image: {
+                mime: 'image/jpeg',
+                type: { id: 3, name: 'front cover' },
+                description: 'Cover',
+                imageBuffer: imageBuffer
+              }
+            }, file);
+            
+            completed++;
+            filesProcessed.push({ name: basename, status: 'success' });
+            
+            progressCallback({
+              message: `🖼️ ${basename}`,
+              percentage: Math.round((completed / mp3Files.length) * 100),
+              current: completed,
+              total: mp3Files.length,
+              files: filesProcessed.slice(-10)
+            });
+          } else {
+            throw new Error('No se encontró portada');
+          }
         } catch (error) {
           console.error(`[Bridge] Cover art error for ${file}:`, error.message);
           completed++;
+          filesProcessed.push({ name: path.basename(file), status: 'error' });
+          
           progressCallback({
             message: `⚠️ ${path.basename(file)} (sin portada)`,
             percentage: Math.round((completed / mp3Files.length) * 100),
             current: completed,
-            total: mp3Files.length
+            total: mp3Files.length,
+            files: filesProcessed.slice(-10)
           });
         }
       }
@@ -442,6 +525,9 @@ class DownloaderBridge {
     try {
       console.log(`[Bridge] Adding lyrics for: ${folderPath}`);
       const glob = require('glob');
+      const NodeID3 = require('node-id3');
+      const { LyricsService } = require('../dist/services/lyrics');
+      
       const mp3Files = glob.sync(path.join(folderPath, '**/*.mp3'));
       
       if (mp3Files.length === 0) {
@@ -455,33 +541,60 @@ class DownloaderBridge {
         message: `🔍 Buscando letras para ${mp3Files.length} archivos...`,
         percentage: 0,
         current: 0,
-        total: mp3Files.length
+        total: mp3Files.length,
+        files: []
       });
 
+      const lyricsService = new LyricsService();
       let completed = 0;
+      let filesProcessed = [];
+
       for (const file of mp3Files) {
         try {
-          // Use the CLI lyrics service
-          execSync(`node "${this.downloadersPath}/main.js" add-lyrics "${file}"`, {
-            encoding: 'utf8',
-            timeout: 30000
-          });
+          const basename = path.basename(file);
           
-          completed++;
-          progressCallback({
-            message: `📝 ${path.basename(file)}`,
-            percentage: Math.round((completed / mp3Files.length) * 100),
-            current: completed,
-            total: mp3Files.length
-          });
+          // Read existing tags to get artist and title
+          const tags = NodeID3.read(file);
+          const artist = tags.artist || basename.split(' - ')[0] || 'Unknown Artist';
+          const title = tags.title || basename.split(' - ')[1]?.replace('.mp3', '') || basename.replace('.mp3', '');
+          
+          // Search for lyrics
+          const lyrics = await lyricsService.searchLyrics(artist, title);
+          
+          if (lyrics) {
+            // Add lyrics to ID3 tags
+            NodeID3.update({
+              unsynchronisedLyrics: {
+                language: 'eng',
+                shortText: '',
+                text: lyrics
+              }
+            }, file);
+            
+            completed++;
+            filesProcessed.push({ name: basename, status: 'success' });
+            
+            progressCallback({
+              message: `📝 ${basename}`,
+              percentage: Math.round((completed / mp3Files.length) * 100),
+              current: completed,
+              total: mp3Files.length,
+              files: filesProcessed.slice(-10)
+            });
+          } else {
+            throw new Error('No se encontraron letras');
+          }
         } catch (error) {
           console.error(`[Bridge] Lyrics error for ${file}:`, error.message);
           completed++;
+          filesProcessed.push({ name: path.basename(file), status: 'error' });
+          
           progressCallback({
             message: `⚠️ ${path.basename(file)} (sin letras)`,
             percentage: Math.round((completed / mp3Files.length) * 100),
             current: completed,
-            total: mp3Files.length
+            total: mp3Files.length,
+            files: filesProcessed.slice(-10)
           });
         }
       }

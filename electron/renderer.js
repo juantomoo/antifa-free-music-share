@@ -9,6 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof setLanguage === 'function') {
       setLanguage(e.target.value);
       updateDynamicContent();
+      
+      // Notify main process of language change
+      if (window.electronAPI && window.electronAPI.setLanguage) {
+        window.electronAPI.setLanguage(e.target.value);
+      }
     }
   });
 });
@@ -152,8 +157,8 @@ document.getElementById('update-metadata-btn').addEventListener('click', async (
     return;
   }
 
-  const progressSection = document.getElementById('progress-section');
-  progressSection.style.display = 'block';
+  // Show modal
+  showModal('🏷️ Actualizando Metadata');
   
   const btn = document.getElementById('update-metadata-btn');
   btn.disabled = true;
@@ -172,7 +177,7 @@ document.getElementById('update-metadata-btn').addEventListener('click', async (
     showNotification(`${t('notifyError')}: ${error.message}`, 'error');
   } finally {
     setTimeout(() => {
-      progressSection.style.display = 'none';
+      hideModal();
     }, 2000);
     btn.disabled = false;
     btn.textContent = btn.getAttribute('data-original-text');
@@ -188,8 +193,8 @@ document.getElementById('add-coverart-btn').addEventListener('click', async () =
     return;
   }
 
-  const progressSection = document.getElementById('progress-section');
-  progressSection.style.display = 'block';
+  // Show modal
+  showModal('🖼️ Agregando Portadas');
   
   const btn = document.getElementById('add-coverart-btn');
   btn.disabled = true;
@@ -208,7 +213,7 @@ document.getElementById('add-coverart-btn').addEventListener('click', async () =
     showNotification(`${t('notifyError')}: ${error.message}`, 'error');
   } finally {
     setTimeout(() => {
-      progressSection.style.display = 'none';
+      hideModal();
     }, 2000);
     btn.disabled = false;
     btn.textContent = btn.getAttribute('data-original-text');
@@ -224,8 +229,8 @@ document.getElementById('add-lyrics-btn').addEventListener('click', async () => 
     return;
   }
 
-  const progressSection = document.getElementById('progress-section');
-  progressSection.style.display = 'block';
+  // Show modal
+  showModal('📝 Agregando Letras');
   
   const btn = document.getElementById('add-lyrics-btn');
   btn.disabled = true;
@@ -244,7 +249,7 @@ document.getElementById('add-lyrics-btn').addEventListener('click', async () => 
     showNotification(`${t('notifyError')}: ${error.message}`, 'error');
   } finally {
     setTimeout(() => {
-      progressSection.style.display = 'none';
+      hideModal();
     }, 2000);
     btn.disabled = false;
     btn.textContent = btn.getAttribute('data-original-text');
@@ -339,9 +344,10 @@ window.electronAPI.onDownloadProgress((data) => {
 });
 
 window.electronAPI.onMetadataProgress((data) => {
-  const progressFill = document.getElementById('progress-fill');
-  const progressText = document.getElementById('progress-text');
-  const progressMessage = document.getElementById('progress-message');
+  const progressFill = document.getElementById('modal-progress-fill');
+  const progressText = document.getElementById('modal-progress-text');
+  const progressMessage = document.getElementById('modal-message');
+  const filesList = document.getElementById('modal-files-list');
 
   if (progressFill && progressText && progressMessage) {
     progressFill.style.width = `${data.percentage}%`;
@@ -351,6 +357,13 @@ window.electronAPI.onMetadataProgress((data) => {
       progressMessage.textContent = `${data.message} (${data.current}/${data.total})`;
     } else {
       progressMessage.textContent = data.message;
+    }
+    
+    // Update files list if provided
+    if (data.files && data.files.length > 0 && filesList) {
+      filesList.innerHTML = data.files.map(file => 
+        `<div class="file-item ${file.status}">${file.name}</div>`
+      ).join('');
     }
   }
 });
@@ -375,6 +388,29 @@ function showNotification(message, type = 'info') {
   setTimeout(() => {
     toast.className = 'toast';
   }, 4000);
+}
+
+// Modal functions
+function showModal(title) {
+  const modal = document.getElementById('progress-modal');
+  const modalTitle = document.getElementById('modal-title');
+  const progressFill = document.getElementById('modal-progress-fill');
+  const progressText = document.getElementById('modal-progress-text');
+  const message = document.getElementById('modal-message');
+  const filesList = document.getElementById('modal-files-list');
+  
+  modalTitle.textContent = title || '📊 Procesando...';
+  progressFill.style.width = '0%';
+  progressText.textContent = '0%';
+  message.textContent = 'Iniciando...';
+  filesList.innerHTML = '';
+  
+  modal.classList.add('active');
+}
+
+function hideModal() {
+  const modal = document.getElementById('progress-modal');
+  modal.classList.remove('active');
 }
 
 // Hide progress button

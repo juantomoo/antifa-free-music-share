@@ -170,6 +170,23 @@
 
   <div id="toast" class="toast"></div>
 
+  <!-- Modal Overlay for Progress -->
+  <div id="progress-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-title">📊 Procesando...</h2>
+      </div>
+      <div class="modal-body">
+        <div class="progress-bar">
+          <div class="progress-fill" id="modal-progress-fill"></div>
+          <span class="progress-text" id="modal-progress-text">0%</span>
+        </div>
+        <p id="modal-message" class="modal-message">Iniciando...</p>
+        <div id="modal-files-list" class="files-list"></div>
+      </div>
+    </div>
+  </div>
+
   <script src="i18n.js"></script>
   <script src="renderer.js"></script>
 </body>
