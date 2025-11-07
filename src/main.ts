@@ -462,6 +462,49 @@ class YTMusicDownloader {
     const { spawn } = require('child_process');
     const { execSync } = require('child_process');
     
+    // Check if it's a single video or a playlist
+    const isSingleVideo = /watch\?v=/.test(playlistUrl) && !/list=/.test(playlistUrl);
+    
+    if (isSingleVideo) {
+      // Handle single video directly
+      console.log(chalk.blue(`🎵 Processing single track...`));
+      
+      try {
+        const jsonOutput = execSync(`yt-dlp --dump-json "${playlistUrl}"`, {
+          encoding: 'utf8',
+          maxBuffer: 10 * 1024 * 1024,
+          timeout: 30000
+        });
+        
+        const metadata = JSON.parse(jsonOutput);
+        
+        const track = metadata.track || metadata.title || 'Unknown Track';
+        const artist = metadata.artist || metadata.artists?.[0] || metadata.uploader?.replace(' - Topic', '') || 'Unknown Artist';
+        const album = metadata.album || 'Unknown Album';
+        const year = metadata.release_year || null;
+        
+        let thumbnailUrl: string | null = null;
+        if (metadata.thumbnails && Array.isArray(metadata.thumbnails)) {
+          const sorted = [...metadata.thumbnails].sort((a, b) => (b.width || 0) - (a.width || 0));
+          thumbnailUrl = sorted[0]?.url || null;
+        }
+        
+        console.log(chalk.green(`✓ Found: ${artist} - ${track}`));
+        
+        return [{
+          title: track,
+          artist: artist,
+          album: album,
+          year: year,
+          url: playlistUrl,
+          thumbnailUrl: thumbnailUrl
+        }];
+      } catch (error) {
+        this.logger.error(`Failed to get metadata: ${error.message}`);
+        return [];
+      }
+    }
+    
     // Step 1: Get video URLs from playlist (fast)
     const videoUrls: string[] = [];
     const flatProcess = spawn('yt-dlp', [
@@ -479,7 +522,12 @@ class YTMusicDownloader {
       flatProcess.on('close', resolve);
     });
     
-    const urls = flatOutput.trim().split('\n').filter(url => url.trim());
+    const urls = flatOutput.trim().split('\n').filter(url => url.trim() && url !== 'NA');
+    
+    if (urls.length === 0) {
+      this.logger.error('No valid URLs found in playlist');
+      return [];
+    }
     
     console.log(chalk.blue(`📋 Found ${urls.length} videos in playlist`));
     console.log(chalk.blue(`🔍 Extracting complete metadata for each track...`));

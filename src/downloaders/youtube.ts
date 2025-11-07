@@ -15,14 +15,46 @@ export class YouTubeDownloader {
   }
 
   /**
-   * Search for tracks on YouTube Music (simplified)
+   * Search for tracks on YouTube Music
    */
   async searchTracks(query: string, maxResults: number = 10): Promise<SearchResult> {
     this.logger.info(`Searching YouTube for: ${query}`);
 
     try {
-      // Simplified search - just return empty for now to avoid compilation errors
+      // Use yt-dlp to search YouTube Music
+      const searchUrl = `ytsearch${maxResults}:${query}`;
+      
+      const result = await youtubedl(searchUrl, {
+        dumpSingleJson: true,
+        noWarnings: true,
+        noPlaylist: true,
+        flatPlaylist: true,
+        skipDownload: true
+      });
+
       const tracks: Track[] = [];
+      
+      // Handle both single result and array of results
+      const resultData: any = result;
+      const entries = Array.isArray(resultData) ? resultData : 
+                     resultData.entries ? resultData.entries : [resultData];
+
+      for (const entry of entries) {
+        if (!entry || !entry.id) continue;
+
+        tracks.push({
+          id: entry.id,
+          title: entry.title || 'Unknown Title',
+          artist: entry.uploader || entry.channel || 'Unknown Artist',
+          album: entry.album || undefined,
+          duration: entry.duration || 0,
+          url: `https://www.youtube.com/watch?v=${entry.id}`,
+          source: MusicSource.YOUTUBE,
+          thumbnailUrl: entry.thumbnail || entry.thumbnails?.[0]?.url,
+          year: entry.upload_date ? parseInt(entry.upload_date.substring(0, 4)) : undefined
+        });
+      }
+
       return { tracks, playlists: [], source: MusicSource.YOUTUBE };
     } catch (error) {
       this.logger.error('Error searching YouTube', error);

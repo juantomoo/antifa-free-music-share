@@ -101,17 +101,39 @@ export class TidalDownloader {
     this.logger.info(`Searching YouTube for: ${track.artist} - ${track.title}`);
 
     try {
-      const searchQuery = `${track.artist} ${track.title} audio`;
-      const youtubeResults = await this.youtubeDownloader.searchTracks(searchQuery, 1);
+      // Try multiple search strategies
+      const searchQueries = [
+        `${track.artist} ${track.title}`,
+        `${track.artist} ${track.title} official audio`,
+        `${track.artist} ${track.title} official video`,
+        `${track.title} ${track.artist}`,
+        track.album ? `${track.artist} ${track.title} ${track.album}` : null
+      ].filter(Boolean) as string[];
 
-      if (youtubeResults.tracks.length === 0) {
+      let youtubeResults;
+      let foundQuery = '';
+
+      // Try each search query until we find results
+      for (const query of searchQueries) {
+        this.logger.info(`Trying YouTube search: ${query}`);
+        youtubeResults = await this.youtubeDownloader.searchTracks(query, 3);
+        
+        if (youtubeResults.tracks.length > 0) {
+          foundQuery = query;
+          break;
+        }
+      }
+
+      if (!youtubeResults || youtubeResults.tracks.length === 0) {
         return {
           track,
           success: false,
-          error: 'No matching track found on YouTube',
+          error: 'No matching track found on YouTube after multiple search attempts',
           source: MusicSource.TIDAL
         };
       }
+
+      this.logger.info(`Found match with query: ${foundQuery}`);
 
       const youtubeTrack = youtubeResults.tracks[0];
       const mergedTrack: Track = {
