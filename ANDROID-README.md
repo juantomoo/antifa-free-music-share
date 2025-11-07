@@ -6,6 +6,8 @@ Aplicación Android creada colectivamente entre múltiples colectivos del Sur Gl
 
 **Licencia:** GPL-3.0 | **Contacto:** surglobal@proton.me
 
+**Ubicación de archivos:** Los archivos descargados se guardan en el directorio Documents de la app (accesible desde cualquier explorador de archivos).
+
 ---
 
 ## 🚀 Instalación

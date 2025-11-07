@@ -4,20 +4,16 @@ document.addEventListener('DOMContentLoaded', () => {
     initLanguage();
   }
   
-  // Initialize storage manager and request permissions on Android
+  // Initialize storage manager on Android (no permissions needed for Documents dir)
   if (window.storageManager && window.storageManager.isAndroid) {
     setTimeout(async () => {
-      const hasPermission = await window.storageManager.requestPermissions();
-      if (hasPermission) {
-        // Set default download path
-        const defaultPath = window.storageManager.defaultPath;
-        document.getElementById('download-path').value = defaultPath;
-        // Ensure directory exists
-        await window.storageManager.ensureDirectory(defaultPath);
-      } else {
-        window.storageManager.showPermissionMessage();
-      }
-    }, 1000);
+      // Set default download path
+      const defaultPath = window.storageManager.defaultPath;
+      document.getElementById('download-path').value = defaultPath;
+      // Ensure directory exists
+      await window.storageManager.ensureDirectory(defaultPath);
+      console.log('Android storage initialized:', defaultPath);
+    }, 500);
   }
   
   // Language selector

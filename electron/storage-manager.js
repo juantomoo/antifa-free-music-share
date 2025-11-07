@@ -21,7 +21,9 @@ class StorageManager {
 
   getDefaultDownloadPath() {
     if (this.isAndroid) {
-      return '/storage/emulated/0/Music/AntifaFreeMusic';
+      // En Android, usar directorio de la app (no requiere permisos)
+      // Capacitor lo mapea automáticamente a la carpeta Music de la app
+      return 'AntifaFreeMusic';
     } else if (this.isElectron) {
       return ''; // Will be set by Electron
     } else {
@@ -101,13 +103,8 @@ class StorageManager {
       // Use Electron dialog
       return await window.electronAPI.selectDownloadFolder();
     } else if (this.isAndroid) {
-      // On Android, use fixed path after requesting permissions
-      const hasPermission = await this.requestPermissions();
-      if (hasPermission) {
-        return this.defaultPath;
-      } else {
-        throw new Error('Storage permission denied');
-      }
+      // On Android, use app's Documents directory (no permissions needed)
+      return this.defaultPath;
     } else {
       // Browser - use download folder
       return this.defaultPath;
@@ -123,15 +120,15 @@ class StorageManager {
       return true;
     } else if (this.isAndroid && typeof Filesystem !== 'undefined') {
       try {
-        // Try to create directory
+        // Use Documents directory (no special permissions needed)
         await Filesystem.mkdir({
           path: path,
-          directory: Directory.ExternalStorage,
+          directory: Directory.Documents,
           recursive: true
         });
         return true;
       } catch (error) {
-        if (error.message.includes('exists')) {
+        if (error.message && error.message.includes('exists')) {
           return true; // Directory already exists
         }
         console.error('Error creating directory:', error);
@@ -153,13 +150,14 @@ class StorageManager {
         // Convert blob to base64
         const base64Data = await this.blobToBase64(blob);
         
-        // Save file
+        // Save file using Documents directory
         const result = await Filesystem.writeFile({
           path: `${path}/${filename}`,
           data: base64Data,
-          directory: Directory.ExternalStorage
+          directory: Directory.Documents
         });
         
+        console.log('File saved successfully:', result.uri);
         return { success: true, path: result.uri };
       } catch (error) {
         console.error('Error saving file on Android:', error);
