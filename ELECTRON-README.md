@@ -68,9 +68,29 @@ npm run android:run
 ```
 
 **Requisitos para Android:**
-- Android Studio instalado
-- Android SDK configurado
-- Java JDK 17+
+- Android SDK instalado (puedes usar el script `./install-android-sdk.sh`)
+- Java JDK 21 (compatible con Gradle 8.11.1)
+- Variables de entorno configuradas:
+  ```bash
+  export ANDROID_HOME="$HOME/Android/Sdk"
+  export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools"
+  ```
+
+**Instalación automática del SDK:**
+```bash
+./install-android-sdk.sh
+source ~/.bashrc  # Cargar variables de entorno
+```
+
+**Cambiar versión de Java (Fedora/RHEL):**
+```bash
+# Instalar Java 21
+sudo dnf install java-21-openjdk java-21-openjdk-devel -y
+
+# Configurar como predeterminado
+sudo alternatives --config java
+sudo alternatives --config javac
+```
 
 Los APKs se generan en: `android/app/build/outputs/apk/`
 
