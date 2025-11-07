@@ -16,56 +16,55 @@ export class YouTubeDownloader {
   }
 
   /**
-   * Search for tracks on YouTube Music
+   * Search for tracks on YouTube Music using ytmusicapi
    */
   async searchTracks(query: string, maxResults: number = 10): Promise<SearchResult> {
-    this.logger.info(`Searching YouTube for: ${query}`);
+    this.logger.info(`Searching YouTube Music for: ${query}`);
 
     try {
-      // Use yt-dlp to search YouTube Music specifically
-      // Format: "https://music.youtube.com/search?q=QUERY"
-      const searchUrl = `https://music.youtube.com/search?q=${encodeURIComponent(query)}`;
+      // Use Python ytmusicapi script for accurate YouTube Music results
+      const scriptPath = require('path').join(__dirname, '../../ytmusic_search.py');
       
-      const jsonOutput = execSync(`yt-dlp --dump-json --flat-playlist --playlist-end ${maxResults} "${searchUrl}"`, {
+      const jsonOutput = execSync(`python3 "${scriptPath}" "${query}"`, {
         encoding: 'utf8',
         maxBuffer: 50 * 1024 * 1024, // 50MB buffer
         timeout: 30000
       });
 
-      const tracks: Track[] = [];
+      const results = JSON.parse(jsonOutput);
       
-      // Each line is a separate JSON object
-      const lines = jsonOutput.trim().split('\n').filter(line => line.trim());
-      
-      for (const line of lines) {
-        try {
-          const entry = JSON.parse(line);
-          
-          if (!entry || !entry.id) continue;
-
-          // Clean up artist name (remove "- Topic" suffix)
-          const artist = (entry.uploader || entry.channel || 'Unknown Artist').replace(' - Topic', '');
-
-          tracks.push({
-            id: entry.id,
-            title: entry.title || 'Unknown Title',
-            artist: artist,
-            album: entry.album || undefined,
-            duration: entry.duration || 0,
-            url: entry.url || `https://music.youtube.com/watch?v=${entry.id}`,
-            source: MusicSource.YOUTUBE_MUSIC,
-            thumbnailUrl: entry.thumbnail || entry.thumbnails?.[0]?.url,
-            year: entry.upload_date ? parseInt(entry.upload_date.substring(0, 4)) : undefined
-          });
-        } catch (parseError) {
-          this.logger.error(`Failed to parse search result: ${parseError}`);
-          continue;
-        }
+      // Check for errors
+      if (results.error) {
+        this.logger.error(`YouTube Music search error: ${results.error}`);
+        return { tracks: [], playlists: [], source: MusicSource.YOUTUBE_MUSIC };
       }
 
+      const tracks: Track[] = [];
+      
+      // Process results (limited by maxResults)
+      const limitedResults = Array.isArray(results) ? results.slice(0, maxResults) : [];
+      
+      for (const item of limitedResults) {
+        if (!item.videoId) continue;
+
+        tracks.push({
+          id: item.videoId,
+          title: item.title || 'Unknown Title',
+          artist: item.artist || 'Unknown Artist',
+          album: item.album || undefined,
+          duration: item.duration || 0,
+          url: item.url || `https://music.youtube.com/watch?v=${item.videoId}`,
+          source: MusicSource.YOUTUBE_MUSIC,
+          thumbnailUrl: item.thumbnailUrl || undefined,
+          year: item.year || undefined
+        });
+      }
+
+      this.logger.info(`Found ${tracks.length} YouTube Music tracks`);
       return { tracks, playlists: [], source: MusicSource.YOUTUBE_MUSIC };
+      
     } catch (error) {
-      this.logger.error('Error searching YouTube', error);
+      this.logger.error('Error searching YouTube Music', error);
       return { tracks: [], playlists: [], source: MusicSource.YOUTUBE_MUSIC };
     }
   }

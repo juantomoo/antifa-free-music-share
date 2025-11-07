@@ -430,21 +430,35 @@ class YTMusicDownloader {
       return;
     }
 
-    // Download selected tracks
+    // Use the working playlist workflow for search results
+    // Extract URLs and process them like playlist tracks
     console.log(chalk.blue(`\n🎵 Starting download of ${selectedTracks.length} tracks...\n`));
     
-    for (let i = 0; i < selectedTracks.length; i++) {
-      const track = selectedTracks[i];
-      console.log(chalk.cyan(`[${i + 1}/${selectedTracks.length}] ${track.artist} - ${track.title}`));
-      
-      const result = await this.downloadTrack(track);
-      if (result.success) {
-        this.logger.success(`Downloaded: ${track.title}`);
-      } else {
-        this.logger.error(`Failed: ${track.title} - ${result.error}`);
+    const t = i18n.t();
+    console.log(chalk.yellow(t.liberationMessages.beforeDownload));
+    
+    // Process each URL using the working getPlaylistTracks workflow
+    const tracksToDownload = [];
+    
+    for (const track of selectedTracks) {
+      if (track.url) {
+        // Use getPlaylistTracks to get full metadata (this workflow works!)
+        const fullTrackData = await this.getPlaylistTracks(track.url);
+        if (fullTrackData.length > 0) {
+          tracksToDownload.push(fullTrackData[0]);
+        }
       }
     }
     
+    if (tracksToDownload.length === 0) {
+      console.log(chalk.red('Failed to process selected tracks'));
+      return;
+    }
+
+    // Download using the working parallel workflow
+    await this.downloadPlaylistParallel(tracksToDownload);
+    
+    console.log(chalk.yellow('\n' + t.liberationMessages.afterDownload));
     console.log(chalk.green('\n✅ Download batch completed!'));
   }
 
