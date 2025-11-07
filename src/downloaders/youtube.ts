@@ -4,6 +4,7 @@ import { Logger } from '../utils/logger';
 import { ConfigManager } from '../utils/config';
 import { FileHelper } from '../utils/file-helper';
 import axios from 'axios';
+import { execSync } from 'child_process';
 
 export class YouTubeDownloader {
   private logger = Logger.getInstance();
@@ -21,38 +22,41 @@ export class YouTubeDownloader {
     this.logger.info(`Searching YouTube for: ${query}`);
 
     try {
-      // Use yt-dlp to search YouTube Music
+      // Use yt-dlp command directly for search
       const searchUrl = `ytsearch${maxResults}:${query}`;
       
-      const result = await youtubedl(searchUrl, {
-        dumpSingleJson: true,
-        noWarnings: true,
-        noPlaylist: true,
-        flatPlaylist: true,
-        skipDownload: true
+      const jsonOutput = execSync(`yt-dlp --dump-json --flat-playlist "${searchUrl}"`, {
+        encoding: 'utf8',
+        maxBuffer: 50 * 1024 * 1024, // 50MB buffer
+        timeout: 30000
       });
 
       const tracks: Track[] = [];
       
-      // Handle both single result and array of results
-      const resultData: any = result;
-      const entries = Array.isArray(resultData) ? resultData : 
-                     resultData.entries ? resultData.entries : [resultData];
+      // Each line is a separate JSON object
+      const lines = jsonOutput.trim().split('\n').filter(line => line.trim());
+      
+      for (const line of lines) {
+        try {
+          const entry = JSON.parse(line);
+          
+          if (!entry || !entry.id) continue;
 
-      for (const entry of entries) {
-        if (!entry || !entry.id) continue;
-
-        tracks.push({
-          id: entry.id,
-          title: entry.title || 'Unknown Title',
-          artist: entry.uploader || entry.channel || 'Unknown Artist',
-          album: entry.album || undefined,
-          duration: entry.duration || 0,
-          url: `https://www.youtube.com/watch?v=${entry.id}`,
-          source: MusicSource.YOUTUBE,
-          thumbnailUrl: entry.thumbnail || entry.thumbnails?.[0]?.url,
-          year: entry.upload_date ? parseInt(entry.upload_date.substring(0, 4)) : undefined
-        });
+          tracks.push({
+            id: entry.id,
+            title: entry.title || 'Unknown Title',
+            artist: entry.uploader || entry.channel || 'Unknown Artist',
+            album: entry.album || undefined,
+            duration: entry.duration || 0,
+            url: entry.url || `https://www.youtube.com/watch?v=${entry.id}`,
+            source: MusicSource.YOUTUBE,
+            thumbnailUrl: entry.thumbnail || entry.thumbnails?.[0]?.url,
+            year: entry.upload_date ? parseInt(entry.upload_date.substring(0, 4)) : undefined
+          });
+        } catch (parseError) {
+          this.logger.error(`Failed to parse search result: ${parseError}`);
+          continue;
+        }
       }
 
       return { tracks, playlists: [], source: MusicSource.YOUTUBE };
