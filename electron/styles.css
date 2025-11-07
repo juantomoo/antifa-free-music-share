@@ -436,73 +436,83 @@ body {
   font-size: 14px;
 }
 
-/* Reflexive Messages - Sticky bottom always visible */
+/* Reflexive Messages - Ticker inside footer */
 .reflexive-message {
-  position: fixed;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  max-width: 800px;
-  background: rgba(10, 14, 39, 0.95);
-  border: 2px solid var(--accent-cyan);
-  border-radius: 12px;
-  padding: 15px 20px;
-  text-align: center;
-  z-index: 10000; /* Mayor que modal */
-  box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
-  animation: message-fade-in 1s ease;
-  backdrop-filter: blur(10px);
-}
-
-/* En móviles, mensajes más pequeños y abajo */
-@media (max-width: 768px) {
-  .reflexive-message {
-    bottom: 60px;
-    width: 95%;
-    padding: 10px 15px;
-    font-size: 12px;
-  }
+  width: 100%;
+  overflow: hidden;
+  background: linear-gradient(90deg, 
+    transparent,
+    rgba(0, 255, 255, 0.1) 50%,
+    transparent
+  );
+  border-top: 1px solid var(--accent-cyan);
+  border-bottom: 1px solid var(--accent-cyan);
+  padding: 8px 0;
+  margin: 5px 0;
 }
 
 .reflexive-message p {
-  margin: 5px 0;
-  color: var(--text-primary);
-  line-height: 1.6;
-}
-
-.reflexive-message strong {
+  display: inline-block;
+  padding-left: 100%;
+  animation: ticker 30s linear infinite;
+  white-space: nowrap;
   color: var(--accent-cyan);
-  font-size: 1.1em;
+  font-size: 14px;
+  margin: 0;
 }
 
-/* Footer - Sticky bottom always visible */
+@keyframes ticker {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(-100%, 0);
+  }
+}
+
+/* Footer - Sticky bottom with ticker inside */
 footer {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
   text-align: center;
-  padding: 15px 20px;
+  padding: 10px 0 0 0;
   color: var(--text-tertiary);
-  background: rgba(10, 14, 39, 0.98);
+  background: rgba(5, 10, 30, 0.98);
   border-top: 2px solid var(--border-color);
   z-index: 10000; /* Mayor que modal */
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(15px);
   box-shadow: 0 -5px 20px rgba(0, 255, 65, 0.2);
+}
+
+.footer-content {
+  padding: 0 20px 10px 20px;
 }
 
 /* En móviles, footer más compacto */
 @media (max-width: 768px) {
-  footer {
-    padding: 8px 10px;
-    font-size: 11px;
+  .footer-content {
+    padding: 0 10px 8px 10px;
+    font-size: 10px;
+  }
+  
+  .reflexive-message p {
+    font-size: 12px;
   }
 }
 
 footer p {
   margin: 3px 0;
   font-size: 13px;
+}
+
+/* En móviles, texto del footer aún más pequeño */
+@media (max-width: 768px) {
+  footer p {
+    font-size: 11px;
+    margin: 2px 0;
+  }
 }
 
 /* Scrollbar */

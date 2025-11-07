@@ -44,12 +44,51 @@ class StorageManager {
         return false;
       }
 
+      // Check current permission status
+      const checkResult = await Filesystem.checkPermissions();
+      console.log('Permission status:', checkResult);
+
+      if (checkResult.publicStorage === 'granted') {
+        return true;
+      }
+
       // Request permissions
       const permission = await Filesystem.requestPermissions();
-      return permission.publicStorage === 'granted';
+      console.log('Permission result:', permission);
+      
+      if (permission.publicStorage === 'granted') {
+        return true;
+      } else if (permission.publicStorage === 'denied') {
+        // Show message to open settings
+        this.showSettingsMessage();
+        return false;
+      }
+      
+      return false;
     } catch (error) {
       console.error('Error requesting permissions:', error);
+      this.showSettingsMessage();
       return false;
+    }
+  }
+
+  /**
+   * Open Android settings to allow permissions manually
+   */
+  async openAppSettings() {
+    if (!this.isAndroid) return;
+
+    try {
+      // Try to use Capacitor App plugin to open settings
+      if (typeof App !== 'undefined' && App.openSettings) {
+        await App.openSettings();
+      } else {
+        // Fallback: show instructions
+        alert('Por favor, ve a:\nConfiguracion > Aplicaciones > Antifa Free Music Share > Permisos\n\nY habilita el permiso de Almacenamiento.');
+      }
+    } catch (error) {
+      console.error('Error opening settings:', error);
+      alert('No se pudo abrir la configuración. Por favor, abre manualmente:\nConfiguracion > Aplicaciones > Antifa Free Music Share > Permisos');
     }
   }
 
@@ -157,17 +196,39 @@ class StorageManager {
   }
 
   /**
-   * Show permission denied message
+   * Show permission denied message with button to open settings
    */
   showPermissionMessage() {
     const messages = {
-      es: '⚠️ Permisos de almacenamiento necesarios. Por favor, habilítalos en Configuración > Aplicaciones > Antifa Free Music Share > Permisos.',
-      en: '⚠️ Storage permissions required. Please enable them in Settings > Apps > Antifa Free Music Share > Permissions.',
-      pt: '⚠️ Permissões de armazenamento necessárias. Por favor, habilite-as em Configurações > Aplicativos > Antifa Free Music Share > Permissões.'
+      es: '⚠️ Permisos de almacenamiento necesarios.\n\n¿Deseas abrir la configuración para habilitarlos?',
+      en: '⚠️ Storage permissions required.\n\nDo you want to open settings to enable them?',
+      pt: '⚠️ Permissões de armazenamento necessárias.\n\nDeseja abrir as configurações para habilitá-las?'
     };
     
     const lang = document.getElementById('language-select')?.value || 'es';
-    alert(messages[lang] || messages.es);
+    const message = messages[lang] || messages.es;
+    
+    if (confirm(message)) {
+      this.openAppSettings();
+    }
+  }
+
+  /**
+   * Show settings message (when permissions are permanently denied)
+   */
+  showSettingsMessage() {
+    const messages = {
+      es: '⚠️ Los permisos fueron denegados.\n\nPara usar esta función, debes habilitarlos manualmente en:\nConfiguración > Aplicaciones > Antifa Free Music Share > Permisos\n\n¿Abrir configuración ahora?',
+      en: '⚠️ Permissions were denied.\n\nTo use this feature, you must enable them manually at:\nSettings > Apps > Antifa Free Music Share > Permissions\n\nOpen settings now?',
+      pt: '⚠️ As permissões foram negadas.\n\nPara usar este recurso, você deve habilitá-las manualmente em:\nConfigurações > Aplicativos > Antifa Free Music Share > Permissões\n\nAbrir configurações agora?'
+    };
+    
+    const lang = document.getElementById('language-select')?.value || 'es';
+    const message = messages[lang] || messages.es;
+    
+    if (confirm(message)) {
+      this.openAppSettings();
+    }
   }
 }
 

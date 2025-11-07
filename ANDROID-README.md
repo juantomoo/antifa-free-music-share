@@ -4,7 +4,7 @@
 
 Aplicación Android creada colectivamente entre múltiples colectivos del Sur Global para democratizar el acceso a la música y la cultura.
 
-**Licencia:** GPL-3.0 | **Contacto:** legal.dmca.globalsouth@proton.me
+**Licencia:** GPL-3.0 | **Contacto:** surglobal@proton.me
 
 ---
 
@@ -247,7 +247,7 @@ Esta app se proporciona "tal cual". Los colectivos creadores no se hacen respons
 
 ### DMCA
 Para reclamaciones legales, consulta [disclaimer.html](disclaimer.html) o contacta:
-**legal.dmca.globalsouth@proton.me**
+**surglobal@proton.me**
 
 *(Requisitos: documentación notariada en 3 idiomas, prueba de salarios justos, certificaciones de no explotación laboral, 180 días de respuesta)*
 

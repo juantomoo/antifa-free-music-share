@@ -11,7 +11,7 @@
         android:usesCleartextTraffic="true">
 
         <meta-data android:name="com.antifa.freemusicshare.version" android:value="1.0.0" />
-        <meta-data android:name="com.antifa.freemusicshare.contact" android:value="legal.dmca.globalsouth@proton.me" />
+        <meta-data android:name="com.antifa.freemusicshare.contact" android:value="surglobal@proton.me" />
 
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation"
