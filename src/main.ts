@@ -509,7 +509,8 @@ class YTMusicDownloader {
       try {
         this.logger.debug(`🎬 Running yt-dlp --dump-json for: ${playlistUrl}`);
         
-        const jsonOutput = execSync(`yt-dlp --dump-json "${playlistUrl}"`, {
+        // Suppress stderr warnings from yt-dlp
+        const jsonOutput = execSync(`yt-dlp --dump-json "${playlistUrl}" 2>/dev/null`, {
           encoding: 'utf8',
           maxBuffer: 10 * 1024 * 1024,
           timeout: 30000
@@ -592,6 +593,71 @@ class YTMusicDownloader {
     
     console.log(chalk.blue(`📋 Found ${urls.length} videos in playlist`));
     console.log(chalk.blue(`🔍 Extracting complete metadata for each track...`));
+    console.log(chalk.gray(`\n💭 Mientras esperamos, reflexionemos juntos...\n`));
+    
+    // Mensajes reflexivos inspirados en Martha Nussbaum - Enfoque de Capacidades
+    const reflexiveMessages = [
+      {
+        message: "🌱 El acceso a la cultura es una capacidad humana fundamental.",
+        context: "Martha Nussbaum nos enseña que cada persona merece poder disfrutar de la belleza, el arte y la expresión creativa como parte de una vida digna."
+      },
+      {
+        message: "🤝 La tecnología puede ser un puente, no una barrera.",
+        context: "Cuando usamos herramientas como esta, ejercemos nuestra capacidad de agencia - de tomar decisiones informadas sobre cómo accedemos al conocimiento y la cultura."
+      },
+      {
+        message: "🌍 Los derechos culturales son derechos humanos.",
+        context: "No se trata de extremos políticos, sino de reconocer que tod@s merecemos participar en la vida cultural de nuestras comunidades."
+      },
+      {
+        message: "💡 El conocimiento compartido nos hace libres.",
+        context: "Desde las bibliotecas públicas hasta las plataformas abiertas, compartir cultura ha sido siempre un acto de construcción comunitaria y solidaridad."
+      },
+      {
+        message: "🌿 Apoyemos economías que cuiden a las personas y al planeta.",
+        context: "Las empresas de triple impacto (social, ambiental, económico) demuestran que es posible prosperar mientras cuidamos del bien común."
+      },
+      {
+        message: "🕊️ El diálogo construye, la violencia destruye.",
+        context: "Podemos pensar distinto y aun así trabajar juntos por un mundo más justo. La diversidad de ideas nos enriquece cuando dialogamos con respeto."
+      },
+      {
+        message: "✨ Las capacidades humanas florecen en libertad.",
+        context: "Nussbaum nos recuerda: no basta con tener derechos en papel. Necesitamos las condiciones reales para ejercerlos: educación, salud, cultura, participación."
+      },
+      {
+        message: "🎵 La cultura nos conecta con nuestra humanidad compartida.",
+        context: "La música, el arte, las historias - son lenguajes universales que nos permiten reconocernos en el otr@, más allá de nuestras diferencias."
+      },
+      {
+        message: "🌈 Ni extremos: busquemos el equilibrio y la justicia.",
+        context: "Los extremismos - de izquierda o derecha - empobrecen el debate. La vida buena requiere compasión, razón práctica y espacio para el florecimiento de tod@s."
+      },
+      {
+        message: "🌻 Algunas grandes empresas también eligen el bien común.",
+        context: "Hay corporaciones que están transformándose, entendiendo que su éxito depende de un planeta sano y comunidades prósperas. Apoyémoslas cuando actúen éticamente."
+      },
+      {
+        message: "🔓 La soberanía tecnológica es dignidad humana.",
+        context: "Tener control sobre nuestras herramientas y datos no es radicalismo - es ejercer nuestra capacidad de autodeterminación, fundamental en la filosofía de Nussbaum."
+      },
+      {
+        message: "💚 Cada acción cuenta, por pequeña que parezca.",
+        context: "Desde tu rincón del mundo, tus elecciones importan. Apoyar artistas directamente, usar software libre, compartir conocimiento - todo suma."
+      },
+      {
+        message: "📚 El acceso a la información es poder, y el poder debe ser de tod@s.",
+        context: "Democratizar el conocimiento no significa robar - significa construir un mundo donde nadie quede excluido del banquete de la cultura humana."
+      },
+      {
+        message: "🤲 Cuando mejoren sus políticas, las plataformas merecen apoyo.",
+        context: "No estamos en contra de las empresas, sino de prácticas injustas. Si Spotify, Apple o YouTube pagan justamente y respetan la privacidad, merecen nuestro uso."
+      },
+      {
+        message: "🌟 La prosperidad con justicia es posible.",
+        context: "No hay contradicción entre vivir bien y que otr@s vivan bien. La economía solidaria y las cooperativas lo demuestran cada día."
+      }
+    ];
     
     // Step 2: Get complete metadata for each video (slower but accurate)
     const tracks: Array<{
@@ -604,15 +670,36 @@ class YTMusicDownloader {
       thumbnailUrl: string | null;
     }> = [];
     
-    const progressBar = ora(`Processing track 0/${urls.length}`).start();
+    // Mostrar mensaje reflexivo inicial
+    const randomMessage = reflexiveMessages[Math.floor(Math.random() * reflexiveMessages.length)];
+    console.log(chalk.cyan(`${randomMessage.message}`));
+    console.log(chalk.gray(`${randomMessage.context}\n`));
+    
+    const progressBar = ora({
+      text: `Procesando pista 1/${urls.length}`,
+      spinner: 'dots'
+    }).start();
+    
+    // Interval para rotar mensajes cada 30 segundos
+    let messageIndex = 0;
+    const messageInterval = setInterval(() => {
+      messageIndex = (messageIndex + 1) % reflexiveMessages.length;
+      const msg = reflexiveMessages[messageIndex];
+      progressBar.stopAndPersist({
+        symbol: chalk.cyan('💭'),
+        text: chalk.cyan(msg.message)
+      });
+      console.log(chalk.gray(`   ${msg.context}\n`));
+      progressBar.start();
+    }, 30000); // Cada 30 segundos
     
     for (let i = 0; i < urls.length; i++) {
       const videoUrl = urls[i];
-      progressBar.text = `Processing track ${i + 1}/${urls.length}`;
+      progressBar.text = `Procesando pista ${i + 1}/${urls.length} - ${Math.round((i / urls.length) * 100)}%`;
       
       try {
-        // Get JSON metadata for this specific video
-        const jsonOutput = execSync(`yt-dlp --dump-json "${videoUrl}"`, {
+        // Get JSON metadata for this specific video (suppress stderr warnings)
+        const jsonOutput = execSync(`yt-dlp --dump-json "${videoUrl}" 2>/dev/null`, {
           encoding: 'utf8',
           maxBuffer: 10 * 1024 * 1024, // 10MB buffer
           timeout: 30000 // 30 second timeout per track
@@ -666,7 +753,12 @@ class YTMusicDownloader {
       }
     }
     
-    progressBar.succeed(`Extracted metadata for ${tracks.length} tracks`);
+    // Clear the message interval
+    clearInterval(messageInterval);
+    
+    progressBar.succeed(chalk.green(`✅ Metadata extraída para ${tracks.length} pistas`));
+    console.log(chalk.gray(`\n🌟 Gracias por tomarte este tiempo para reflexionar. Juntos construimos un mundo mejor.\n`));
+    
     return tracks;
   }
 
