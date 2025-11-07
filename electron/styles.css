@@ -476,6 +476,81 @@ body {
   to { transform: rotate(360deg); }
 }
 
+/* File Input Wrapper */
+.file-input-wrapper {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.file-input-wrapper input {
+  flex: 1;
+}
+
+/* Info Box */
+.info-box {
+  background: rgba(0, 255, 65, 0.1);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 15px;
+  color: var(--text-secondary);
+}
+
+.info-box p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Reflexive Message Context */
+.reflexive-context {
+  font-size: 0.9em;
+  color: var(--text-tertiary);
+  margin-top: 10px;
+  font-style: italic;
+}
+
+/* Download Path Section */
+.download-path-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(0, 255, 65, 0.2);
+}
+
+/* More tab styles */
+.tabs {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  flex-wrap: wrap;
+}
+
+.tab {
+  padding: 10px 15px;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+/* Progress Header */
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.progress-header h3 {
+  margin: 0;
+  font-size: 1.1em;
+}
+
+.btn-small {
+  padding: 5px 10px;
+  font-size: 0.9em;
+  min-width: unset;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .container {
@@ -490,11 +565,23 @@ body {
     flex-direction: column;
   }
   
+  .tab {
+    width: 100%;
+  }
+  
+  .file-input-wrapper {
+    flex-direction: column;
+  }
+  
   .path-selector {
     flex-direction: column;
   }
   
   .ascii-art {
     font-size: 10px;
+  }
+  
+  .language-selector {
+    text-align: center;
   }
 }

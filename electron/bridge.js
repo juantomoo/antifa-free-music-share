@@ -304,6 +304,201 @@ class DownloaderBridge {
       results: results
     };
   }
+
+  /**
+   * Update metadata for MP3 files in a folder using MusicBrainz
+   */
+  async updateMetadata(folderPath, progressCallback) {
+    try {
+      console.log(`[Bridge] Updating metadata for: ${folderPath}`);
+      const glob = require('glob');
+      const mp3Files = glob.sync(path.join(folderPath, '**/*.mp3'));
+      
+      if (mp3Files.length === 0) {
+        return {
+          success: false,
+          error: 'No se encontraron archivos MP3 en la carpeta'
+        };
+      }
+
+      progressCallback({
+        message: `🔍 Analizando ${mp3Files.length} archivos...`,
+        percentage: 0,
+        current: 0,
+        total: mp3Files.length
+      });
+
+      let completed = 0;
+      for (const file of mp3Files) {
+        try {
+          // Use the CLI metadata service
+          execSync(`node "${this.downloadersPath}/main.js" update-metadata "${file}"`, {
+            encoding: 'utf8',
+            timeout: 30000
+          });
+          
+          completed++;
+          progressCallback({
+            message: `✅ ${path.basename(file)}`,
+            percentage: Math.round((completed / mp3Files.length) * 100),
+            current: completed,
+            total: mp3Files.length
+          });
+        } catch (error) {
+          console.error(`[Bridge] Metadata error for ${file}:`, error.message);
+          completed++;
+          progressCallback({
+            message: `⚠️ ${path.basename(file)} (sin cambios)`,
+            percentage: Math.round((completed / mp3Files.length) * 100),
+            current: completed,
+            total: mp3Files.length
+          });
+        }
+      }
+
+      return {
+        success: true,
+        total: mp3Files.length,
+        completed: completed
+      };
+    } catch (error) {
+      console.error('[Bridge] Update metadata error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Add cover art to MP3 files in a folder
+   */
+  async addCoverArt(folderPath, progressCallback) {
+    try {
+      console.log(`[Bridge] Adding cover art for: ${folderPath}`);
+      const glob = require('glob');
+      const mp3Files = glob.sync(path.join(folderPath, '**/*.mp3'));
+      
+      if (mp3Files.length === 0) {
+        return {
+          success: false,
+          error: 'No se encontraron archivos MP3 en la carpeta'
+        };
+      }
+
+      progressCallback({
+        message: `🔍 Procesando ${mp3Files.length} archivos...`,
+        percentage: 0,
+        current: 0,
+        total: mp3Files.length
+      });
+
+      let completed = 0;
+      for (const file of mp3Files) {
+        try {
+          // Use the CLI cover art service
+          execSync(`node "${this.downloadersPath}/main.js" add-cover-art "${file}"`, {
+            encoding: 'utf8',
+            timeout: 30000
+          });
+          
+          completed++;
+          progressCallback({
+            message: `🖼️ ${path.basename(file)}`,
+            percentage: Math.round((completed / mp3Files.length) * 100),
+            current: completed,
+            total: mp3Files.length
+          });
+        } catch (error) {
+          console.error(`[Bridge] Cover art error for ${file}:`, error.message);
+          completed++;
+          progressCallback({
+            message: `⚠️ ${path.basename(file)} (sin portada)`,
+            percentage: Math.round((completed / mp3Files.length) * 100),
+            current: completed,
+            total: mp3Files.length
+          });
+        }
+      }
+
+      return {
+        success: true,
+        total: mp3Files.length,
+        completed: completed
+      };
+    } catch (error) {
+      console.error('[Bridge] Add cover art error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Add lyrics to MP3 files in a folder
+   */
+  async addLyrics(folderPath, progressCallback) {
+    try {
+      console.log(`[Bridge] Adding lyrics for: ${folderPath}`);
+      const glob = require('glob');
+      const mp3Files = glob.sync(path.join(folderPath, '**/*.mp3'));
+      
+      if (mp3Files.length === 0) {
+        return {
+          success: false,
+          error: 'No se encontraron archivos MP3 en la carpeta'
+        };
+      }
+
+      progressCallback({
+        message: `🔍 Buscando letras para ${mp3Files.length} archivos...`,
+        percentage: 0,
+        current: 0,
+        total: mp3Files.length
+      });
+
+      let completed = 0;
+      for (const file of mp3Files) {
+        try {
+          // Use the CLI lyrics service
+          execSync(`node "${this.downloadersPath}/main.js" add-lyrics "${file}"`, {
+            encoding: 'utf8',
+            timeout: 30000
+          });
+          
+          completed++;
+          progressCallback({
+            message: `📝 ${path.basename(file)}`,
+            percentage: Math.round((completed / mp3Files.length) * 100),
+            current: completed,
+            total: mp3Files.length
+          });
+        } catch (error) {
+          console.error(`[Bridge] Lyrics error for ${file}:`, error.message);
+          completed++;
+          progressCallback({
+            message: `⚠️ ${path.basename(file)} (sin letras)`,
+            percentage: Math.round((completed / mp3Files.length) * 100),
+            current: completed,
+            total: mp3Files.length
+          });
+        }
+      }
+
+      return {
+        success: true,
+        total: mp3Files.length,
+        completed: completed
+      };
+    } catch (error) {
+      console.error('[Bridge] Add lyrics error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
 }
 
 module.exports = { DownloaderBridge };

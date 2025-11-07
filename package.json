@@ -34,6 +34,7 @@
     "fs-extra": "^11.3.2",
     "fuzzy-search": "^3.2.1",
     "genius-lyrics": "^4.4.7",
+    "glob": "^11.0.3",
     "inquirer": "^9.2.12",
     "musicbrainz-api": "^0.26.0",
     "node-id3": "^0.2.6",

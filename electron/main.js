@@ -55,6 +55,13 @@ ipcMain.handle('select-download-folder', async () => {
   return result.canceled ? null : result.filePaths[0];
 });
 
+ipcMain.handle('select-folder', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory']
+  });
+  return result.canceled ? null : result.filePaths[0];
+});
+
 ipcMain.handle('search-tracks', async (event, query) => {
   try {
     console.log('[Main] Search request:', query);
@@ -140,6 +147,45 @@ ipcMain.handle('download-tracks', async (event, tracks, downloadPath) => {
       success: false,
       error: error.message
     };
+  }
+});
+
+ipcMain.handle('update-metadata', async (event, folderPath) => {
+  try {
+    console.log('[Main] Update metadata request:', folderPath);
+    const result = await bridge.updateMetadata(folderPath, (progress) => {
+      mainWindow.webContents.send('metadata-progress', progress);
+    });
+    return result;
+  } catch (error) {
+    console.error('[Main] Update metadata error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('add-cover-art', async (event, folderPath) => {
+  try {
+    console.log('[Main] Add cover art request:', folderPath);
+    const result = await bridge.addCoverArt(folderPath, (progress) => {
+      mainWindow.webContents.send('metadata-progress', progress);
+    });
+    return result;
+  } catch (error) {
+    console.error('[Main] Add cover art error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('add-lyrics', async (event, folderPath) => {
+  try {
+    console.log('[Main] Add lyrics request:', folderPath);
+    const result = await bridge.addLyrics(folderPath, (progress) => {
+      mainWindow.webContents.send('metadata-progress', progress);
+    });
+    return result;
+  } catch (error) {
+    console.error('[Main] Add lyrics error:', error);
+    return { success: false, error: error.message };
   }
 });
 

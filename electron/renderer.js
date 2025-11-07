@@ -1,3 +1,27 @@
+// Initialize language on load
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof initLanguage === 'function') {
+    initLanguage();
+  }
+  
+  // Language selector
+  document.getElementById('language-select').addEventListener('change', (e) => {
+    if (typeof setLanguage === 'function') {
+      setLanguage(e.target.value);
+      updateDynamicContent();
+    }
+  });
+});
+
+// Update dynamic content after language change
+function updateDynamicContent() {
+  // Update search results if any
+  const resultsContainer = document.getElementById('search-results');
+  if (resultsContainer.innerHTML.includes('No se encontraron')) {
+    resultsContainer.innerHTML = `<p style="color: var(--text-tertiary);">${t('noResults')}</p>`;
+  }
+}
+
 // Tab switching
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -12,11 +36,35 @@ document.querySelectorAll('.tab').forEach(tab => {
   });
 });
 
-// Select download folder
-document.getElementById('select-folder-btn').addEventListener('click', async () => {
+// Select download folder (for downloads)
+document.getElementById('select-path-btn').addEventListener('click', async () => {
   const path = await window.electronAPI.selectDownloadFolder();
   if (path) {
     document.getElementById('download-path').value = path;
+  }
+});
+
+// Select metadata folder
+document.getElementById('select-metadata-btn').addEventListener('click', async () => {
+  const path = await window.electronAPI.selectFolder();
+  if (path) {
+    document.getElementById('metadata-folder').value = path;
+  }
+});
+
+// Select cover art folder
+document.getElementById('select-coverart-btn').addEventListener('click', async () => {
+  const path = await window.electronAPI.selectFolder();
+  if (path) {
+    document.getElementById('coverart-folder').value = path;
+  }
+});
+
+// Select lyrics folder
+document.getElementById('select-lyrics-btn').addEventListener('click', async () => {
+  const path = await window.electronAPI.selectFolder();
+  if (path) {
+    document.getElementById('lyrics-folder').value = path;
   }
 });
 
@@ -24,7 +72,7 @@ document.getElementById('select-folder-btn').addEventListener('click', async () 
 document.getElementById('search-btn').addEventListener('click', async () => {
   const query = document.getElementById('search-input').value.trim();
   if (!query) {
-    showNotification('⚠️ Por favor ingresa una búsqueda', 'warning');
+    showNotification(t('notifySearchEmpty'), 'warning');
     return;
   }
 
@@ -37,10 +85,17 @@ document.getElementById('search-btn').addEventListener('click', async () => {
     if (result.success && result.tracks.length > 0) {
       displaySearchResults(result.tracks);
     } else {
-      resultsContainer.innerHTML = '<p style="color: var(--text-tertiary);">No se encontraron resultados.</p>';
+      resultsContainer.innerHTML = `<p style="color: var(--text-tertiary);">${t('noResults')}</p>`;
     }
   } catch (error) {
-    resultsContainer.innerHTML = `<p style="color: var(--accent-red);">Error: ${error.message}</p>`;
+    resultsContainer.innerHTML = `<p style="color: var(--accent-red);">${t('notifyError')}: ${error.message}</p>`;
+  }
+});
+
+// Allow Enter key to trigger search
+document.getElementById('search-input').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    document.getElementById('search-btn').click();
   }
 });
 
@@ -50,38 +105,149 @@ document.getElementById('playlist-btn').addEventListener('click', async () => {
   const downloadPath = document.getElementById('download-path').value;
 
   if (!url) {
-    showNotification('⚠️ Por favor ingresa una URL de playlist', 'warning');
+    showNotification(t('notifyPlaylistEmpty'), 'warning');
     return;
   }
 
   if (!downloadPath) {
-    showNotification('⚠️ Por favor selecciona una carpeta de descarga', 'warning');
+    showNotification(t('notifyPathEmpty'), 'warning');
     return;
   }
 
   // Show progress section
   const progressSection = document.getElementById('progress-section');
-  progressSection.classList.remove('hidden');
+  progressSection.style.display = 'block';
   
   // Disable button during download
   const btn = document.getElementById('playlist-btn');
   btn.disabled = true;
-  btn.textContent = '⏳ Procesando...';
+  btn.setAttribute('data-original-text', btn.textContent);
+  btn.textContent = t('playlistProcessing');
 
   try {
     const result = await window.electronAPI.downloadPlaylist(url, downloadPath);
     
     if (result.success) {
-      showNotification(result.message || '✅ Descarga completada', 'success');
+      showNotification(result.message || t('notifyCompleted'), 'success');
     } else {
-      showNotification(`❌ Error: ${result.error}`, 'error');
+      showNotification(`${t('notifyError')}: ${result.error}`, 'error');
     }
   } catch (error) {
-    showNotification(`❌ Error: ${error.message}`, 'error');
+    showNotification(`${t('notifyError')}: ${error.message}`, 'error');
   } finally {
-    progressSection.classList.add('hidden');
+    setTimeout(() => {
+      progressSection.style.display = 'none';
+    }, 2000);
     btn.disabled = false;
-    btn.textContent = 'Descargar Playlist';
+    btn.textContent = btn.getAttribute('data-original-text');
+  }
+});
+
+// Update metadata
+document.getElementById('update-metadata-btn').addEventListener('click', async () => {
+  const folderPath = document.getElementById('metadata-folder').value;
+
+  if (!folderPath) {
+    showNotification(t('notifyPathEmpty'), 'warning');
+    return;
+  }
+
+  const progressSection = document.getElementById('progress-section');
+  progressSection.style.display = 'block';
+  
+  const btn = document.getElementById('update-metadata-btn');
+  btn.disabled = true;
+  btn.setAttribute('data-original-text', btn.textContent);
+  btn.textContent = t('metadataProcessing');
+
+  try {
+    const result = await window.electronAPI.updateMetadata(folderPath);
+    
+    if (result.success) {
+      showNotification(`✅ Metadata actualizada: ${result.completed} archivos`, 'success');
+    } else {
+      showNotification(`${t('notifyError')}: ${result.error}`, 'error');
+    }
+  } catch (error) {
+    showNotification(`${t('notifyError')}: ${error.message}`, 'error');
+  } finally {
+    setTimeout(() => {
+      progressSection.style.display = 'none';
+    }, 2000);
+    btn.disabled = false;
+    btn.textContent = btn.getAttribute('data-original-text');
+  }
+});
+
+// Add cover art
+document.getElementById('add-coverart-btn').addEventListener('click', async () => {
+  const folderPath = document.getElementById('coverart-folder').value;
+
+  if (!folderPath) {
+    showNotification(t('notifyPathEmpty'), 'warning');
+    return;
+  }
+
+  const progressSection = document.getElementById('progress-section');
+  progressSection.style.display = 'block';
+  
+  const btn = document.getElementById('add-coverart-btn');
+  btn.disabled = true;
+  btn.setAttribute('data-original-text', btn.textContent);
+  btn.textContent = t('coverProcessing');
+
+  try {
+    const result = await window.electronAPI.addCoverArt(folderPath);
+    
+    if (result.success) {
+      showNotification(`✅ Portadas agregadas: ${result.completed} archivos`, 'success');
+    } else {
+      showNotification(`${t('notifyError')}: ${result.error}`, 'error');
+    }
+  } catch (error) {
+    showNotification(`${t('notifyError')}: ${error.message}`, 'error');
+  } finally {
+    setTimeout(() => {
+      progressSection.style.display = 'none';
+    }, 2000);
+    btn.disabled = false;
+    btn.textContent = btn.getAttribute('data-original-text');
+  }
+});
+
+// Add lyrics
+document.getElementById('add-lyrics-btn').addEventListener('click', async () => {
+  const folderPath = document.getElementById('lyrics-folder').value;
+
+  if (!folderPath) {
+    showNotification(t('notifyPathEmpty'), 'warning');
+    return;
+  }
+
+  const progressSection = document.getElementById('progress-section');
+  progressSection.style.display = 'block';
+  
+  const btn = document.getElementById('add-lyrics-btn');
+  btn.disabled = true;
+  btn.setAttribute('data-original-text', btn.textContent);
+  btn.textContent = t('lyricsProcessing');
+
+  try {
+    const result = await window.electronAPI.addLyrics(folderPath);
+    
+    if (result.success) {
+      showNotification(`✅ Letras agregadas: ${result.completed} archivos`, 'success');
+    } else {
+      showNotification(`${t('notifyError')}: ${result.error}`, 'error');
+    }
+  } catch (error) {
+    showNotification(`${t('notifyError')}: ${error.message}`, 'error');
+  } finally {
+    setTimeout(() => {
+      progressSection.style.display = 'none';
+    }, 2000);
+    btn.disabled = false;
+    btn.textContent = btn.getAttribute('data-original-text');
   }
 });
 
@@ -91,7 +257,7 @@ function displaySearchResults(tracks) {
   resultsContainer.innerHTML = '';
 
   if (tracks.length === 0) {
-    resultsContainer.innerHTML = '<p style="color: var(--text-tertiary);">No se encontraron resultados.</p>';
+    resultsContainer.innerHTML = `<p style="color: var(--text-tertiary);">${t('noResults')}</p>`;
     return;
   }
 
@@ -102,21 +268,24 @@ function displaySearchResults(tracks) {
     
     resultItem.innerHTML = `
       <div class="result-info">
-        <div class="result-title">${track.title}</div>
-        <div class="result-artist">${track.artist} ${track.album ? `• ${track.album}` : ''}</div>
+        <div class="result-title">🎵 ${track.title}</div>
+        <div class="result-details">
+          <span>👤 ${track.artist}</span>
+          ${track.album && track.album !== 'Unknown Album' ? `<span>💿 ${track.album}</span>` : ''}
+          ${track.duration ? `<span>⏱️ ${track.duration}</span>` : ''}
+        </div>
       </div>
-      <button class="btn btn-primary download-track-btn" data-track-index="${index}">📥 Descargar</button>
+      <button class="btn btn-small download-track-btn" data-track-index="${index}">
+        ${t('downloadTrack')}
+      </button>
     `;
     
     resultsContainer.appendChild(resultItem);
   });
 
   // Add event listeners to download buttons
-  document.querySelectorAll('.download-track-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const index = parseInt(e.target.getAttribute('data-track-index'));
-      downloadSingleTrack(tracks[index]);
-    });
+  document.querySelectorAll('.download-track-btn').forEach((btn, index) => {
+    btn.addEventListener('click', () => downloadSingleTrack(tracks[index]));
   });
 }
 
@@ -125,129 +294,90 @@ async function downloadSingleTrack(track) {
   const downloadPath = document.getElementById('download-path').value;
   
   if (!downloadPath) {
-    showNotification('⚠️ Por favor selecciona una carpeta de descarga', 'warning');
+    showNotification(t('notifyPathEmpty'), 'warning');
     return;
   }
 
+  showNotification(t('notifyDownloading'), 'info');
+  
   const progressSection = document.getElementById('progress-section');
-  progressSection.classList.remove('hidden');
+  progressSection.style.display = 'block';
 
   try {
-    showNotification('📥 Iniciando descarga...', 'info');
-    
     const result = await window.electronAPI.downloadTracks([track], downloadPath);
     
     if (result.success) {
-      showNotification(`✅ Descarga completada: ${track.artist} - ${track.title}`, 'success');
+      showNotification(`✅ ${track.title}`, 'success');
     } else {
-      showNotification(`❌ Error: ${result.error}`, 'error');
+      showNotification(`${t('notifyError')}: ${result.error}`, 'error');
     }
   } catch (error) {
-    showNotification(`❌ Error: ${error.message}`, 'error');
+    showNotification(`${t('notifyError')}: ${error.message}`, 'error');
   } finally {
-    progressSection.classList.add('hidden');
+    setTimeout(() => {
+      progressSection.style.display = 'none';
+    }, 2000);
   }
 }
 
-// Listen for download progress
+// Progress listeners
 window.electronAPI.onDownloadProgress((data) => {
-  const progressBar = document.getElementById('progress-bar');
+  const progressFill = document.getElementById('progress-fill');
+  const progressText = document.getElementById('progress-text');
   const progressMessage = document.getElementById('progress-message');
-  const progressPercentage = document.getElementById('progress-percentage');
-  const progressCount = document.getElementById('progress-count');
 
-  progressBar.style.width = data.percentage + '%';
-  progressMessage.textContent = data.message;
-  progressPercentage.textContent = data.percentage + '%';
-  
-  if (data.current && data.total) {
-    progressCount.textContent = `${data.current}/${data.total}`;
+  if (progressFill && progressText && progressMessage) {
+    progressFill.style.width = `${data.percentage}%`;
+    progressText.textContent = `${data.percentage}%`;
+    
+    if (data.current && data.total) {
+      progressMessage.textContent = `${data.message} (${data.current}/${data.total})`;
+    } else {
+      progressMessage.textContent = data.message;
+    }
   }
 });
 
-// Listen for reflective messages
+window.electronAPI.onMetadataProgress((data) => {
+  const progressFill = document.getElementById('progress-fill');
+  const progressText = document.getElementById('progress-text');
+  const progressMessage = document.getElementById('progress-message');
+
+  if (progressFill && progressText && progressMessage) {
+    progressFill.style.width = `${data.percentage}%`;
+    progressText.textContent = `${data.percentage}%`;
+    
+    if (data.current && data.total) {
+      progressMessage.textContent = `${data.message} (${data.current}/${data.total})`;
+    } else {
+      progressMessage.textContent = data.message;
+    }
+  }
+});
+
+// Reflexive messages
 window.electronAPI.onReflectiveMessage((message) => {
-  const title = document.getElementById('reflective-title');
-  const context = document.getElementById('reflective-context');
-  
-  title.textContent = message.message;
-  context.textContent = message.context;
-  
-  // Add fade animation
-  const container = document.querySelector('.reflective-message');
-  container.style.animation = 'none';
-  setTimeout(() => {
-    container.style.animation = 'message-fade-in 1s ease';
-  }, 10);
+  const reflexiveElement = document.getElementById('reflexive-message');
+  if (reflexiveElement) {
+    reflexiveElement.innerHTML = `
+      <p><strong>${message.message}</strong></p>
+      <p class="reflexive-context">${message.context}</p>
+    `;
+  }
 });
 
-// Notification system
+// Toast notification system
 function showNotification(message, type = 'info') {
-  const notification = document.createElement('div');
-  notification.className = `notification notification-${type}`;
-  notification.textContent = message;
-  notification.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: var(--bg-secondary);
-    border: 2px solid var(--text-primary);
-    padding: 15px 25px;
-    border-radius: 5px;
-    color: var(--text-primary);
-    font-family: 'Share Tech Mono', monospace;
-    z-index: 1000;
-    animation: slideIn 0.3s ease;
-    box-shadow: 0 0 20px var(--shadow-glow);
-  `;
-
-  if (type === 'error') {
-    notification.style.borderColor = 'var(--accent-red)';
-    notification.style.color = 'var(--accent-red)';
-  } else if (type === 'success') {
-    notification.style.borderColor = 'var(--text-primary)';
-  } else if (type === 'warning') {
-    notification.style.borderColor = 'var(--accent-yellow)';
-    notification.style.color = 'var(--accent-yellow)';
-  }
-
-  document.body.appendChild(notification);
-
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.className = `toast show ${type}`;
+  
   setTimeout(() => {
-    notification.style.animation = 'slideOut 0.3s ease';
-    setTimeout(() => notification.remove(), 300);
-  }, 5000);
+    toast.className = 'toast';
+  }, 4000);
 }
 
-// Add CSS animations for notifications
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes slideIn {
-    from {
-      transform: translateX(400px);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-  
-  @keyframes slideOut {
-    from {
-      transform: translateX(0);
-      opacity: 1;
-    }
-    to {
-      transform: translateX(400px);
-      opacity: 0;
-    }
-  }
-`;
-document.head.appendChild(style);
-
-// Set default download path on load
-window.addEventListener('DOMContentLoaded', () => {
-  const defaultPath = require('os').homedir() + '/Music/AntifaFreeMusic';
-  document.getElementById('download-path').value = defaultPath;
+// Hide progress button
+document.getElementById('hide-progress-btn').addEventListener('click', () => {
+  document.getElementById('progress-section').style.display = 'none';
 });

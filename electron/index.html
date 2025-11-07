@@ -10,10 +10,10 @@
   <div class="container">
     <!-- Language Selector -->
     <div class="language-selector">
-      <label for="language-select">🌍 Idioma / Language:</label>
+      <label for="language-select" data-i18n="languageLabel">🌍 Idioma / Language:</label>
       <select id="language-select" class="language-dropdown">
-        <option value="es" selected>🇪🇸 Español</option>
-        <option value="en">🇬🇧 English</option>
+        <option value="es" selected>🇲🇽 Español</option>
+        <option value="en">🏴 English</option>
         <option value="pt">🇧🇷 Português</option>
       </select>
     </div>
@@ -25,7 +25,7 @@
 ║                                                           ║
 ║      🚩 ANTIFA FREE MUSIC SHARE 🚩                       ║
 ║                                                           ║
-║      "Libera el Arte de las Cadenas Capitalistas"        ║
+║      <span data-i18n="subtitle">"Libera el Arte de las Cadenas Capitalistas"</span>        ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
       </pre>
@@ -34,12 +34,12 @@
     <!-- Liberation Message -->
     <div class="liberation-message">
       <div class="message-box">
-        <h2>✊ MÚSICA LIBRE PARA GENTE LIBRE</h2>
-        <p>Esta herramienta existe para liberar la música de monopolios capitalistas que explotan artistas y financian opresión.</p>
+        <h2 data-i18n="liberationTitle">✊ MÚSICA LIBRE PARA GENTE LIBRE</h2>
+        <p data-i18n="liberationText">Esta herramienta existe para liberar la música de monopolios capitalistas que explotan artistas y financian opresión.</p>
         
         <div class="warning-section">
-          <h3>🚫 Spotify, Apple Music y otras plataformas:</h3>
-          <ul>
+          <h3 data-i18n="warningTitle">🚫 Spotify, Apple Music y otras plataformas:</h3>
+          <ul id="warning-list">
             <li>Pagan a artistas $0.003-0.005 por reproducción</li>
             <li>Financian ocupación sionista y genocidio</li>
             <li>Controlan y censuran voces independientes</li>
@@ -47,8 +47,8 @@
         </div>
 
         <div class="use-section">
-          <h3>✅ USA ESTA HERRAMIENTA PARA:</h3>
-          <ul>
+          <h3 data-i18n="useTitle">✅ USA ESTA HERRAMIENTA PARA:</h3>
+          <ul id="use-list">
             <li>Construir tu colección personal</li>
             <li>Apoyar artistas a través de canales directos</li>
             <li>Compartir música en tus comunidades</li>
@@ -61,16 +61,19 @@
     <!-- Main Actions -->
     <div class="main-content">
       <div class="tabs">
-        <button class="tab active" data-tab="search">🔍 Buscar y Descargar</button>
-        <button class="tab" data-tab="playlist">📋 Descargar Playlist</button>
+        <button class="tab active" data-tab="search" data-i18n="tabSearch">🔍 Buscar y Descargar</button>
+        <button class="tab" data-tab="playlist" data-i18n="tabPlaylist">📋 Descargar Playlist</button>
+        <button class="tab" data-tab="metadata" data-i18n="tabMetadata">🏷️ Actualizar Metadata</button>
+        <button class="tab" data-tab="coverart" data-i18n="tabCoverArt">🖼️ Agregar Portadas</button>
+        <button class="tab" data-tab="lyrics" data-i18n="tabLyrics">📝 Agregar Letras</button>
       </div>
 
       <!-- Search Tab -->
       <div class="tab-content active" id="search-tab">
         <div class="input-group">
-          <label for="search-input">🎵 Buscar canción o artista:</label>
-          <input type="text" id="search-input" placeholder="Ej: Magneto Para Siempre" />
-          <button class="btn btn-primary" id="search-btn">Buscar</button>
+          <label for="search-input" data-i18n="searchLabel">🎵 Buscar canción o artista:</label>
+          <input type="text" id="search-input" data-i18n="searchPlaceholder" placeholder="Ej: Magneto Para Siempre" />
+          <button class="btn btn-primary" id="search-btn" data-i18n="searchButton">Buscar</button>
         </div>
 
         <div id="search-results" class="results-container"></div>
@@ -79,54 +82,95 @@
       <!-- Playlist Tab -->
       <div class="tab-content" id="playlist-tab">
         <div class="input-group">
-          <label for="playlist-input">🔗 URL de la playlist:</label>
-          <input type="text" id="playlist-input" placeholder="https://music.youtube.com/playlist?list=..." />
-          <button class="btn btn-primary" id="playlist-btn">Descargar Playlist</button>
+          <label for="playlist-input" data-i18n="playlistLabel">🔗 URL de la playlist:</label>
+          <input type="text" id="playlist-input" data-i18n="playlistPlaceholder" placeholder="https://music.youtube.com/playlist?list=..." />
+          <button class="btn btn-primary" id="playlist-btn" data-i18n="playlistButton">Descargar Playlist</button>
         </div>
       </div>
 
-      <!-- Download Path -->
-      <div class="input-group">
-        <label for="download-path">📁 Carpeta de descarga:</label>
-        <div class="path-selector">
-          <input type="text" id="download-path" readonly placeholder="Selecciona una carpeta..." />
-          <button class="btn btn-secondary" id="select-folder-btn">Seleccionar</button>
+      <!-- Metadata Tab -->
+      <div class="tab-content" id="metadata-tab">
+        <div class="input-group">
+          <label for="metadata-folder" data-i18n="metadataLabel">📁 Selecciona carpeta con archivos MP3:</label>
+          <div class="file-input-wrapper">
+            <input type="text" id="metadata-folder" readonly data-i18n="downloadPlaceholder" placeholder="Selecciona una carpeta..." />
+            <button class="btn btn-secondary" id="select-metadata-btn" data-i18n="selectButton">Seleccionar</button>
+          </div>
+          <button class="btn btn-primary" id="update-metadata-btn" data-i18n="metadataButton">Actualizar Metadata</button>
+        </div>
+        <div class="info-box">
+          <p>ℹ️ Esta función actualizará automáticamente las etiquetas ID3 de tus archivos MP3 usando MusicBrainz.</p>
+        </div>
+      </div>
+
+      <!-- Cover Art Tab -->
+      <div class="tab-content" id="coverart-tab">
+        <div class="input-group">
+          <label for="coverart-folder" data-i18n="coverLabel">📁 Selecciona carpeta con archivos MP3:</label>
+          <div class="file-input-wrapper">
+            <input type="text" id="coverart-folder" readonly data-i18n="downloadPlaceholder" placeholder="Selecciona una carpeta..." />
+            <button class="btn btn-secondary" id="select-coverart-btn" data-i18n="selectButton">Seleccionar</button>
+          </div>
+          <button class="btn btn-primary" id="add-coverart-btn" data-i18n="coverButton">Agregar Portadas</button>
+        </div>
+        <div class="info-box">
+          <p>ℹ️ Esta función buscará y agregará automáticamente portadas de álbum a tus archivos MP3.</p>
+        </div>
+      </div>
+
+      <!-- Lyrics Tab -->
+      <div class="tab-content" id="lyrics-tab">
+        <div class="input-group">
+          <label for="lyrics-folder" data-i18n="lyricsLabel">📁 Selecciona carpeta con archivos MP3:</label>
+          <div class="file-input-wrapper">
+            <input type="text" id="lyrics-folder" readonly data-i18n="downloadPlaceholder" placeholder="Selecciona una carpeta..." />
+            <button class="btn btn-secondary" id="select-lyrics-btn" data-i18n="selectButton">Seleccionar</button>
+          </div>
+          <button class="btn btn-primary" id="add-lyrics-btn" data-i18n="lyricsButton">Agregar Letras</button>
+        </div>
+        <div class="info-box">
+          <p>ℹ️ Esta función buscará y agregará automáticamente letras sincronizadas a tus archivos MP3.</p>
+        </div>
+      </div>
+
+      <!-- Download Path (shared across tabs) -->
+      <div class="download-path-section">
+        <label for="download-path" data-i18n="downloadLabel">📁 Carpeta de descarga:</label>
+        <div class="file-input-wrapper">
+          <input type="text" id="download-path" readonly data-i18n="downloadPlaceholder" placeholder="Selecciona una carpeta..." />
+          <button class="btn btn-secondary" id="select-path-btn" data-i18n="selectButton">Seleccionar</button>
         </div>
       </div>
 
       <!-- Progress Section -->
-      <div id="progress-section" class="progress-section hidden">
+      <div id="progress-section" class="progress-section" style="display: none;">
         <div class="progress-header">
-          <span id="progress-message">Iniciando descarga...</span>
+          <h3>📊 Progreso</h3>
+          <button class="btn btn-small" id="hide-progress-btn">✕</button>
         </div>
-        <div class="progress-bar-container">
-          <div class="progress-bar" id="progress-bar"></div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+          <span class="progress-text" id="progress-text">0%</span>
         </div>
-        <div class="progress-stats">
-          <span id="progress-percentage">0%</span>
-          <span id="progress-count">0/0</span>
-        </div>
+        <p id="progress-message" data-i18n="progressMessage">Iniciando...</p>
       </div>
+    </div>
 
-      <!-- Reflective Message Section -->
-      <div class="reflective-message-container">
-        <div class="reflective-message">
-          <div class="message-icon">💭</div>
-          <div class="message-content">
-            <h3 id="reflective-title">Mientras esperamos, reflexionemos juntos...</h3>
-            <p id="reflective-context">Los mensajes aparecerán aquí durante las descargas.</p>
-          </div>
-        </div>
-      </div>
+    <!-- Reflexive Messages -->
+    <div class="reflexive-message" id="reflexive-message">
+      <p>🌱 "Las capacidades humanas florecen cuando la cultura es libre y accesible"</p>
     </div>
 
     <!-- Footer -->
-    <div class="footer">
-      <p>✊ Construido con amor por la comunidad | GPL-3.0 License</p>
-      <p>🌱 Martha Nussbaum: "Las capacidades humanas florecen en libertad"</p>
-    </div>
+    <footer>
+      <p data-i18n="footerBuilt">✊ Construido con amor por la comunidad | GPL-3.0 License</p>
+      <p data-i18n="footerQuote">🌱 Martha Nussbaum: "Las capacidades humanas florecen en libertad"</p>
+    </footer>
   </div>
 
+  <div id="toast" class="toast"></div>
+
+  <script src="i18n.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>
