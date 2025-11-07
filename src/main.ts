@@ -498,6 +498,7 @@ class YTMusicDownloader {
     const { exec } = require('child_process');
     const util = require('util');
     const execAsync = util.promisify(exec);
+    const pLimit = require('p-limit');
     
     // Check if it's a single video or a playlist
     const isSingleVideo = /watch\?v=/.test(playlistUrl) && !/list=/.test(playlistUrl);
@@ -685,79 +686,101 @@ class YTMusicDownloader {
     }, 10000); // Cada 10 segundos
     
     const startTime = Date.now();
+    let processedCount = 0;
     
-    for (let i = 0; i < urls.length; i++) {
-      const videoUrl = urls[i];
-      const percentage = Math.round((i / urls.length) * 100);
+    // Create a limiter for parallel processing (10 concurrent requests)
+    const limit = pLimit(10);
+    
+    // Progress reporter
+    const showProgress = () => {
+      const percentage = Math.round((processedCount / urls.length) * 100);
       const elapsed = Math.round((Date.now() - startTime) / 1000);
-      const avgTimePerTrack = elapsed / (i || 1);
-      const remaining = Math.round(avgTimePerTrack * (urls.length - i));
-      
-      // Show progress every 5 tracks or at significant milestones
-      if (i === 0 || (i + 1) % 5 === 0 || i === urls.length - 1) {
-        console.log(chalk.yellow(`⏳ Procesando: ${i + 1}/${urls.length} (${percentage}%) - Tiempo restante: ~${Math.floor(remaining / 60)}m ${remaining % 60}s`));
-      }
-      
-      try {
-        // Get JSON metadata for this specific video (suppress stderr warnings)
-        const { stdout: jsonOutput } = await execAsync(`yt-dlp --dump-json "${videoUrl}" 2>/dev/null`, {
-          encoding: 'utf8',
-          maxBuffer: 10 * 1024 * 1024, // 10MB buffer
-          timeout: 30000 // 30 second timeout per track
-        });
+      const avgTimePerTrack = elapsed / (processedCount || 1);
+      const remaining = Math.round(avgTimePerTrack * (urls.length - processedCount));
+      console.log(chalk.yellow(`⏳ Procesando: ${processedCount}/${urls.length} (${percentage}%) - Tiempo restante: ~${Math.floor(remaining / 60)}m ${remaining % 60}s`));
+    };
+    
+    // Process all URLs in parallel with limit
+    const promises = urls.map((videoUrl, index) => 
+      limit(async () => {
+        try {
+          // Get JSON metadata for this specific video (suppress stderr warnings)
+          const { stdout: jsonOutput } = await execAsync(`yt-dlp --dump-json "${videoUrl}" 2>/dev/null`, {
+            encoding: 'utf8',
+            maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+            timeout: 30000 // 30 second timeout per track
+          });
+          
+          const metadata = JSON.parse(jsonOutput);
         
-        const metadata = JSON.parse(jsonOutput);
-        
-        // Extract metadata directly from YouTube Music
-        const track = metadata.track || metadata.title || 'Unknown Track';
-        const artist = metadata.artist || metadata.artists?.[0] || metadata.uploader?.replace(' - Topic', '') || 'Unknown Artist';
-        const album = metadata.album || 'Unknown Album';
-        const year = metadata.release_year || null;
-        
-        // Get highest quality thumbnail
-        let thumbnailUrl: string | null = null;
-        if (metadata.thumbnails && Array.isArray(metadata.thumbnails)) {
-          // Sort by width descending and get the first one
-          const sorted = [...metadata.thumbnails].sort((a, b) => (b.width || 0) - (a.width || 0));
-          thumbnailUrl = sorted[0]?.url || null;
+          // Extract metadata directly from YouTube Music
+          const track = metadata.track || metadata.title || 'Unknown Track';
+          const artist = metadata.artist || metadata.artists?.[0] || metadata.uploader?.replace(' - Topic', '') || 'Unknown Artist';
+          const album = metadata.album || 'Unknown Album';
+          const year = metadata.release_year || null;
+          
+          // Get highest quality thumbnail
+          let thumbnailUrl: string | null = null;
+          if (metadata.thumbnails && Array.isArray(metadata.thumbnails)) {
+            // Sort by width descending and get the first one
+            const sorted = [...metadata.thumbnails].sort((a, b) => (b.width || 0) - (a.width || 0));
+            thumbnailUrl = sorted[0]?.url || null;
+          }
+          
+          // Generate filename
+          const sanitizedArtist = artist.replace(/[<>:"/\\|?*]/g, '');
+          const sanitizedTrack = track.replace(/[<>:"/\\|?*]/g, '');
+          const filename = `${sanitizedArtist} - ${sanitizedTrack}.mp3`;
+          
+          this.logger.debug(`✓ ${artist} - ${track} (${album}, ${year || 'N/A'})`);
+          
+          // Update progress counter and show progress every 10 tracks
+          processedCount++;
+          if (processedCount === 1 || processedCount % 10 === 0 || processedCount === urls.length) {
+            showProgress();
+          }
+          
+          return {
+            title: track,
+            artist: artist,
+            album: album,
+            year: year,
+            url: videoUrl,
+            filename: filename,
+            thumbnailUrl: thumbnailUrl
+          };
+          
+        } catch (error) {
+          this.logger.warn(chalk.yellow(`⚠️  Failed to get metadata for video ${index + 1}: ${error.message}`));
+          
+          processedCount++;
+          if (processedCount % 10 === 0) {
+            showProgress();
+          }
+          
+          // Return basic entry so we don't lose the track
+          return {
+            title: 'Unknown Track',
+            artist: 'Unknown Artist',
+            album: 'Unknown Album',
+            year: null,
+            url: videoUrl,
+            filename: 'Unknown Artist - Unknown Track.mp3',
+            thumbnailUrl: null
+          };
         }
-        
-        // Generate filename
-        const sanitizedArtist = artist.replace(/[<>:"/\\|?*]/g, '');
-        const sanitizedTrack = track.replace(/[<>:"/\\|?*]/g, '');
-        const filename = `${sanitizedArtist} - ${sanitizedTrack}.mp3`;
-        
-        tracks.push({
-          title: track,
-          artist: artist,
-          album: album,
-          year: year,
-          url: videoUrl,
-          filename: filename,
-          thumbnailUrl: thumbnailUrl
-        });
-        
-        this.logger.debug(`✓ ${artist} - ${track} (${album}, ${year || 'N/A'})`);
-        
-      } catch (error) {
-        this.logger.warn(chalk.yellow(`⚠️  Failed to get metadata for video ${i + 1}: ${error.message}`));
-        // Add basic entry so we don't lose the track
-        tracks.push({
-          title: 'Unknown Track',
-          artist: 'Unknown Artist',
-          album: 'Unknown Album',
-          year: null,
-          url: videoUrl,
-          filename: 'Unknown Artist - Unknown Track.mp3',
-          thumbnailUrl: null
-        });
-      }
-    }
+      })
+    );
+    
+    // Wait for all promises to complete
+    const results = await Promise.all(promises);
+    tracks.push(...results);
     
     // Stop message rotation
     clearInterval(messageInterval);
     
-    // Show completion
+    // Show final progress
+    showProgress();
     console.log(chalk.green(`\n✅ Metadata extraída para ${tracks.length} pistas`));
     console.log(chalk.cyan(`🌟 Gracias por tomarte este tiempo para reflexionar. Juntos construimos un mundo mejor.\n`));
     

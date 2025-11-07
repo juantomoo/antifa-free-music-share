@@ -32,6 +32,7 @@
     "musicbrainz-api": "^0.26.0",
     "node-id3": "^0.2.6",
     "ora": "^7.0.1",
+    "p-limit": "^3.1.0",
     "puppeteer": "^21.5.2",
     "spotify-web-api-node": "^5.0.2",
     "ts-node": "^10.9.1",
