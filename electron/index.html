@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🚩 Antifa Free Music Share</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <pre class="ascii-art">
+╔═══════════════════════════════════════════════════════════╗
+║                                                           ║
+║      🚩 ANTIFA FREE MUSIC SHARE 🚩                       ║
+║                                                           ║
+║      "Libera el Arte de las Cadenas Capitalistas"        ║
+║                                                           ║
+╚═══════════════════════════════════════════════════════════╝
+      </pre>
+    </div>
+
+    <!-- Liberation Message -->
+    <div class="liberation-message">
+      <div class="message-box">
+        <h2>✊ MÚSICA LIBRE PARA GENTE LIBRE</h2>
+        <p>Esta herramienta existe para liberar la música de monopolios capitalistas que explotan artistas y financian opresión.</p>
+        
+        <div class="warning-section">
+          <h3>🚫 Spotify, Apple Music y otras plataformas:</h3>
+          <ul>
+            <li>Pagan a artistas $0.003-0.005 por reproducción</li>
+            <li>Financian ocupación sionista y genocidio</li>
+            <li>Controlan y censuran voces independientes</li>
+          </ul>
+        </div>
+
+        <div class="use-section">
+          <h3>✅ USA ESTA HERRAMIENTA PARA:</h3>
+          <ul>
+            <li>Construir tu colección personal</li>
+            <li>Apoyar artistas a través de canales directos</li>
+            <li>Compartir música en tus comunidades</li>
+            <li>Descubrir artistas underground e independientes</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Actions -->
+    <div class="main-content">
+      <div class="tabs">
+        <button class="tab active" data-tab="search">🔍 Buscar y Descargar</button>
+        <button class="tab" data-tab="playlist">📋 Descargar Playlist</button>
+      </div>
+
+      <!-- Search Tab -->
+      <div class="tab-content active" id="search-tab">
+        <div class="input-group">
+          <label for="search-input">🎵 Buscar canción o artista:</label>
+          <input type="text" id="search-input" placeholder="Ej: Magneto Para Siempre" />
+          <button class="btn btn-primary" id="search-btn">Buscar</button>
+        </div>
+
+        <div id="search-results" class="results-container"></div>
+      </div>
+
+      <!-- Playlist Tab -->
+      <div class="tab-content" id="playlist-tab">
+        <div class="input-group">
+          <label for="playlist-input">🔗 URL de la playlist:</label>
+          <input type="text" id="playlist-input" placeholder="https://music.youtube.com/playlist?list=..." />
+          <button class="btn btn-primary" id="playlist-btn">Descargar Playlist</button>
+        </div>
+      </div>
+
+      <!-- Download Path -->
+      <div class="input-group">
+        <label for="download-path">📁 Carpeta de descarga:</label>
+        <div class="path-selector">
+          <input type="text" id="download-path" readonly placeholder="Selecciona una carpeta..." />
+          <button class="btn btn-secondary" id="select-folder-btn">Seleccionar</button>
+        </div>
+      </div>
+
+      <!-- Progress Section -->
+      <div id="progress-section" class="progress-section hidden">
+        <div class="progress-header">
+          <span id="progress-message">Iniciando descarga...</span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="progress-stats">
+          <span id="progress-percentage">0%</span>
+          <span id="progress-count">0/0</span>
+        </div>
+      </div>
+
+      <!-- Reflective Message Section -->
+      <div class="reflective-message-container">
+        <div class="reflective-message">
+          <div class="message-icon">💭</div>
+          <div class="message-content">
+            <h3 id="reflective-title">Mientras esperamos, reflexionemos juntos...</h3>
+            <p id="reflective-context">Los mensajes aparecerán aquí durante las descargas.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>✊ Construido con amor por la comunidad | GPL-3.0 License</p>
+      <p>🌱 Martha Nussbaum: "Las capacidades humanas florecen en libertad"</p>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

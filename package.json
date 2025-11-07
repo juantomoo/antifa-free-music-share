@@ -2,7 +2,7 @@
   "name": "antifa-free-music-share",
   "version": "1.0.0",
   "description": "Liberate music from streaming monopolies. A community tool to free artists and listeners from capitalist platforms that exploit creators.",
-  "main": "dist/main.js",
+  "main": "electron/main.js",
   "bin": {
     "antifa-music": "dist/main.js"
   },
@@ -12,7 +12,13 @@
     "dev": "ts-node src/main.ts",
     "clean": "rm -rf dist",
     "install-deps": "npm install && npm run install-system-deps",
-    "install-system-deps": "echo 'Installing system dependencies...' && (which yt-dlp || pip install yt-dlp) && (which ffmpeg || echo 'Please install ffmpeg manually')"
+    "install-system-deps": "echo 'Installing system dependencies...' && (which yt-dlp || pip install yt-dlp) && (which ffmpeg || echo 'Please install ffmpeg manually')",
+    "electron": "npm run build && electron .",
+    "electron-dev": "electron . --dev",
+    "package": "npm run build && electron-builder",
+    "package-win": "npm run build && electron-builder --win",
+    "package-mac": "npm run build && electron-builder --mac",
+    "package-linux": "npm run build && electron-builder --linux"
   },
   "dependencies": {
     "@types/node": "^20.10.0",
@@ -42,7 +48,9 @@
   "devDependencies": {
     "@types/cli-progress": "^3.11.5",
     "@types/inquirer": "^9.0.7",
-    "@types/spotify-web-api-node": "^5.0.11"
+    "@types/spotify-web-api-node": "^5.0.11",
+    "electron": "^39.1.1",
+    "electron-builder": "^26.0.12"
   },
   "keywords": [
     "music-liberation",
@@ -63,5 +71,54 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "build": {
+    "appId": "com.eonaria.antifa-free-music-share",
+    "productName": "Antifa Free Music Share",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "ytmusic_search.py",
+        "to": "ytmusic_search.py"
+      }
+    ],
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm"
+      ],
+      "category": "Audio",
+      "icon": "electron/icon.png"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "electron/icon.ico"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.music",
+      "icon": "electron/icon.icns"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
   }
 }

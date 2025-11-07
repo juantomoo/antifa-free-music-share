@@ -10,6 +10,12 @@ dist/
 *.js
 *.js.map
 !*.config.js
+!electron/*.js
+
+# Electron builds
+release/
+out/
+build/
 
 # Downloads
 downloads/
